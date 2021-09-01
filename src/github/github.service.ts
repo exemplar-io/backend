@@ -10,6 +10,9 @@ export class GithubService {
   ) {}
 
   authGithub(code: string) {
+    console.log(code);
+    console.log(this.configService.get<string>('GITHUB_CLIENT_ID'));
+
     this.httpService
       .post('https://github.com/login/oauth/access_token', {
         client_id: this.configService.get<string>('GITHUB_CLIENT_ID'),
@@ -18,7 +21,9 @@ export class GithubService {
       })
       .subscribe({
         next: (response) => console.log(response),
-        error: (error) => console.log(error),
+        error: (error) => {
+          console.log(error);
+        },
       });
   }
 
