@@ -5,9 +5,5 @@ import { AuthService } from './auth.service';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
-  createRepo(@Body() data) {
-    // validation on req
-    this.authService.createRepo(data.name, data.token);
-  }
+ 
 }

@@ -1,14 +1,17 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { GithubService } from './github.service';
+import { GithubController } from './github.controller';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     HttpModule.register({
-      baseURL: 'https://api.github.com',
+      // baseURL: 'https://api.github.com',
     }),
   ],
   providers: [GithubService],
   exports: [GithubService],
+  controllers: [GithubController],
 })
 export class GithubModule {}
