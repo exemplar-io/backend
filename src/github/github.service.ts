@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
+import { map } from 'rxjs';
 
 @Injectable()
 export class GithubService {
@@ -10,21 +11,23 @@ export class GithubService {
   ) {}
 
   authGithub(code: string) {
-    console.log(code);
-    console.log(this.configService.get<string>('GITHUB_CLIENT_ID'));
-
-    this.httpService
-      .post('https://github.com/login/oauth/access_token', {
-        client_id: this.configService.get<string>('GITHUB_CLIENT_ID'),
-        client_secret: this.configService.get<string>('GITHUB_SECRET'),
-        code,
-      })
-      .subscribe({
-        next: (response) => console.log(response),
-        error: (error) => {
-          console.log(error);
+    return this.httpService
+      .post(
+        'https://github.com/login/oauth/access_token',
+        {
+          client_id: this.configService.get<string>('GITHUB_CLIENT_ID'),
+          client_secret: this.configService.get<string>('GITHUB_SECRET'),
+          code,
         },
-      });
+        {
+          headers: { Accept: 'application/json' },
+        },
+      )
+      .pipe(
+        map((response) => {
+          return response.data['access_token'];
+        }),
+      );
   }
 
   createRepo(name, token) {

@@ -7,7 +7,7 @@ export class GithubController {
 
   @Post('auth')
   authGithub(@Body() body) {
-    this.githubService.authGithub(body.code);
+    return this.githubService.authGithub(body.code);
   }
 
   @Post('repo')
