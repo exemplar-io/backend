@@ -23,15 +23,11 @@ export class GithubService {
           headers: { Accept: 'application/json' },
         },
       )
-      .pipe(
-        map((response) => {
-          return response.data['access_token'];
-        }),
-      );
+      .pipe(map((response) => response.data['access_token']));
   }
 
   createRepo(name, token) {
-    this.httpService
+    return this.httpService
       .post(
         'https://api.github.com/user/repos',
         {
@@ -43,9 +39,6 @@ export class GithubService {
           },
         },
       )
-      .subscribe({
-        next: (response) => console.log(response.status),
-        error: (error) => console.log(error),
-      });
+      .pipe(map((response) => response.data.clone_url));
   }
 }

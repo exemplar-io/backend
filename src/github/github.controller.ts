@@ -12,6 +12,6 @@ export class GithubController {
 
   @Post('repo')
   createRepo(@Body() data) {
-    this.githubService.createRepo(data.name, data.token);
+    return this.githubService.createRepo(data.name, data.token);
   }
 }
