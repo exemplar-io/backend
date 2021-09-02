@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { map } from 'rxjs';
+import { exec } from 'child_process';
 
 @Injectable()
 export class GithubService {
@@ -39,6 +40,25 @@ export class GithubService {
           },
         },
       )
-      .pipe(map((response) => response.data.clone_url));
+      .pipe(
+        map((response) => {
+          const repoUrl = response.data.clone_url;
+          GithubService.addFilesToRepo(token, repoUrl);
+          return repoUrl;
+        }),
+      );
+  }
+
+  private static addFilesToRepo(token, url) {
+    exec(`
+      cd nest-template && \
+      git config --global init.defaultBranch && \
+      git init && \
+      git add . && \
+      git commit -m "first commit" && \
+      git remote add origin https://${token}@${url.substring(8)} && \
+      git push -u origin main && \
+      rm -rf .git
+    `);
   }
 }
