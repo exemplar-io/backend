@@ -3,6 +3,13 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { map } from 'rxjs';
 import { exec } from 'child_process';
+import { UnauthorizedException } from '@nestjs/common';
+import { catchError } from 'rxjs';
+import { GoneException } from '@nestjs/common';
+import { throwError } from 'rxjs';
+import { NotFoundException } from '@nestjs/common';
+import { UnprocessableEntityException } from '@nestjs/common';
+import { InternalServerErrorException } from '@nestjs/common';
 
 @Injectable()
 export class GithubService {
@@ -24,7 +31,14 @@ export class GithubService {
           headers: { Accept: 'application/json' },
         },
       )
-      .pipe(map((response) => response.data['access_token']));
+      .pipe(
+        map((response) => {
+          if (response.data.error)
+            throw new UnauthorizedException(response.data.error_description);
+
+          return response.data['access_token'];
+        }),
+      );
   }
 
   createRepo(name, token) {
@@ -46,13 +60,25 @@ export class GithubService {
           GithubService.addFilesToRepo(token, repoUrl);
           return repoUrl;
         }),
+        catchError((err) => {
+          if (err.response.status === 422)
+            throw new UnprocessableEntityException(
+              'Repository name already in use',
+            );
+          else if (err.response.status === 401)
+            throw new UnauthorizedException(
+              'Invalid Github Authentication token',
+            );
+
+          throw new InternalServerErrorException(err);
+        }),
       );
   }
 
   private static addFilesToRepo(token, url) {
     exec(`
       cd nest-template && \
-      git config --global init.defaultBranch && \
+      git config init.defaultBranch main && \
       git init && \
       git add . && \
       git commit -m "first commit" && \
