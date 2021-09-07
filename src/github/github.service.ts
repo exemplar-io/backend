@@ -4,10 +4,6 @@ import { ConfigService } from '@nestjs/config';
 import { map } from 'rxjs';
 import { exec } from 'child_process';
 import { UnauthorizedException } from '@nestjs/common';
-import { catchError } from 'rxjs';
-import { GoneException } from '@nestjs/common';
-import { throwError } from 'rxjs';
-import { NotFoundException } from '@nestjs/common';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { InternalServerErrorException } from '@nestjs/common';
 
@@ -35,44 +31,50 @@ export class GithubService {
         map((response) => {
           if (response.data.error)
             throw new UnauthorizedException(response.data.error_description);
-
           return response.data['access_token'];
         }),
       );
   }
 
-  createRepo(name, token) {
-    return this.httpService
-      .post(
-        'https://api.github.com/user/repos',
-        {
-          name,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      )
-      .pipe(
-        map((response) => {
-          const repoUrl = response.data.clone_url;
-          GithubService.addFilesToRepo(token, repoUrl);
-          return repoUrl;
-        }),
-        catchError((err) => {
-          if (err.response.status === 422)
-            throw new UnprocessableEntityException(
-              'Repository name already in use',
-            );
-          else if (err.response.status === 401)
-            throw new UnauthorizedException(
-              'Invalid Github Authentication token',
-            );
+  async createRepo(name, token) {
+    const msUrl = await this.createRepoHTTPRequest(name, token);
+    GithubService.addFilesToRepo(token, msUrl);
+    const rootUrl = await this.createRepoHTTPRequest('hardcode', token);
+    GithubService.addFilesToRoot(token, msUrl, rootUrl);
+    return rootUrl;
+  }
 
-          throw new InternalServerErrorException(err);
+  private createRepoHTTPRequest(name, token) {
+    return new Promise((resolve) =>
+      this.httpService
+        .post(
+          'https://api.github.com/user/repos',
+          {
+            name,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+        .subscribe({
+          next: (response) => {
+            resolve(response.data.clone_url);
+          },
+          error: (err) => {
+            if (err.response.status === 422)
+              throw new UnprocessableEntityException(
+                'Repository name already in use',
+              );
+            else if (err.response.status === 401)
+              throw new UnauthorizedException(
+                'Invalid Github Authentication token',
+              );
+            throw new InternalServerErrorException(err);
+          },
         }),
-      );
+    );
   }
 
   private static addFilesToRepo(token, url) {
@@ -86,5 +88,11 @@ export class GithubService {
       git push -u origin main && \
       rm -rf .git
     `);
+  }
+
+  private static addFilesToRoot(token, msUrl, rootUrl) {
+    console.log(token);
+    console.log(msUrl);
+    console.log(rootUrl);
   }
 }
