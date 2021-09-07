@@ -31,6 +31,7 @@ export class GithubService {
         map((response) => {
           if (response.data.error)
             throw new UnauthorizedException(response.data.error_description);
+          console.log(response.data['access_token']);
           return response.data['access_token'];
         }),
       );
@@ -39,7 +40,7 @@ export class GithubService {
   async createRepo(name, token) {
     const msUrl = await this.createRepoHTTPRequest(name, token);
     GithubService.addFilesToRepo(token, msUrl);
-    const rootUrl = await this.createRepoHTTPRequest('hardcode', token);
+    const rootUrl = await this.createRepoHTTPRequest('kojdojixxx', token);
     GithubService.addFilesToRoot(token, msUrl, rootUrl);
     return rootUrl;
   }
@@ -79,20 +80,31 @@ export class GithubService {
 
   private static addFilesToRepo(token, url) {
     exec(`
-      cd nest-template && \
+      cd project-template/nest && \
       git config init.defaultBranch main && \
       git init && \
       git add . && \
       git commit -m "first commit" && \
       git remote add origin https://${token}@${url.substring(8)} && \
       git push -u origin main && \
-      rm -rf .git
     `);
   }
 
   private static addFilesToRoot(token, msUrl, rootUrl) {
-    console.log(token);
-    console.log(msUrl);
-    console.log(rootUrl);
+    // TODO: fix
+    exec(`
+      cd project-template && \
+      git config init.defaultBranch main && \
+      git init && \
+      git submodule add ${msUrl} nest && \
+      git add . && \
+      git commit -m "first commit" && \
+      git remote add origin https://${token}@${rootUrl.substring(8)} && \
+      git push -u origin main && \
+      rm -rf .git
+    `);
+    // exec('ls').stdout.on('data', (data) => {
+    //   console.log(data);
+    // });
   }
 }
