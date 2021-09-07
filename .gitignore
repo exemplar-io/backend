@@ -37,4 +37,4 @@ lerna-debug.log*
 
 .env
 
-nest-template/node_modules
+project-template/nest/node_modules

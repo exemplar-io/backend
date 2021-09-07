@@ -28,8 +28,13 @@ export class GithubController {
   @Post('repo')
   createRepo(@Body() createRepoDto: CreateRepoDto) {
     return this.githubService.createRepo(
-      createRepoDto.repoName,
+      'name1',
+      'name2',
       createRepoDto.githubToken,
     );
+    // return this.githubService.createRepo(
+    //   createRepoDto.repoName,
+    //   createRepoDto.githubToken,
+    // );
   }
 }
