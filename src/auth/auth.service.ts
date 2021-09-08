@@ -5,7 +5,7 @@ import { GithubService } from '../github/github.service';
 export class AuthService {
   constructor(private githubService: GithubService) {}
 
-  createRepo(name, token) {
-    this.githubService.createRepo(name, token);
-  }
+  // createRepo(name, token) {
+  //   this.githubService.createRepo(name, token);
+  // }
 }

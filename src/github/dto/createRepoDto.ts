@@ -10,8 +10,13 @@ import {
 export class CreateRepoDto {
   @IsString()
   @IsNotEmpty()
-  @ApiProperty({ example: 'Repository Name' })
-  repoName: string;
+  @ApiProperty({ example: 'ms-repo-name' })
+  msRepoName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ example: 'root-repo-name' })
+  rootRepoName: string;
 
   // @IsString()
   @IsNotEmpty()

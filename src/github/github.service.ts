@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { map } from 'rxjs';
-import { exec } from 'child_process';
+import { map, zip } from 'rxjs';
+// import { exec } from 'child_process';
 import { UnauthorizedException } from '@nestjs/common';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { InternalServerErrorException } from '@nestjs/common';
+import { promisify } from 'util';
+const exec = promisify(require('child_process').exec);
 
 @Injectable()
 export class GithubService {
@@ -14,8 +16,8 @@ export class GithubService {
     private configService: ConfigService,
   ) {}
 
-  authGithub(code: string) {
-    return this.httpService
+  authGithub = (code: string) =>
+    this.httpService
       .post(
         'https://github.com/login/oauth/access_token',
         {
@@ -31,80 +33,95 @@ export class GithubService {
         map((response) => {
           if (response.data.error)
             throw new UnauthorizedException(response.data.error_description);
-          console.log(response.data['access_token']);
           return response.data['access_token'];
         }),
       );
-  }
 
-  async createRepo(name, token) {
-    const msUrl = await this.createRepoHTTPRequest(name, token);
-    GithubService.addFilesToRepo(token, msUrl);
-    const rootUrl = await this.createRepoHTTPRequest('kojdojixxx', token);
-    GithubService.addFilesToRoot(token, msUrl, rootUrl);
-    return rootUrl;
-  }
+  createRepo = (msName, rootName, token) =>
+    zip(
+      this.createRepoHTTPRequest(msName, token),
+      this.createRepoHTTPRequest(rootName, token),
+    ).pipe(
+      map(async ([msUrl, rootUrl]) => {
+        GithubService.addFilesToRepo(token, msUrl);
+        await GithubService.addFilesToRoot(token, msUrl, rootUrl);
+        GithubService.gitCleanup();
+        return { msUrl, rootUrl };
+      }),
+    );
 
-  private createRepoHTTPRequest(name, token) {
-    return new Promise((resolve) =>
-      this.httpService
-        .post(
-          'https://api.github.com/user/repos',
-          {
-            name,
+  private createRepoHTTPRequest = (name, token) =>
+    this.httpService
+      .post(
+        'https://api.github.com/user/repos',
+        {
+          name,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        )
-        .subscribe({
-          next: (response) => {
-            resolve(response.data.clone_url);
-          },
-          error: (err) => {
-            if (err.response.status === 422)
-              throw new UnprocessableEntityException(
-                'Repository name already in use',
-              );
-            else if (err.response.status === 401)
-              throw new UnauthorizedException(
-                'Invalid Github Authentication token',
-              );
-            throw new InternalServerErrorException(err);
-          },
-        }),
+        },
+      )
+      .pipe(map((res) => res.data.clone_url));
+
+  private static addFilesToRepo(token, url: string) {
+    const githubUrl = 'https://' + token + '@' + url.substring(8);
+
+    exec(
+      'cd ./project-template/nest && ' +
+        'git config init.defaultBranch main && ' +
+        'git init &&  ' +
+        'git add . && ' +
+        'git commit -m "first commit"  &&' +
+        'git remote add origin ' +
+        githubUrl +
+        ' && ' +
+        'git push -u origin main ',
     );
   }
 
-  private static addFilesToRepo(token, url) {
-    exec(`
-      cd project-template/nest && \
-      git config init.defaultBranch main && \
-      git init && \
-      git add . && \
-      git commit -m "first commit" && \
-      git remote add origin https://${token}@${url.substring(8)} && \
-      git push -u origin main && \
-    `);
+  private static async addFilesToRoot(token, msUrl, rootUrl) {
+    const githubUrl = 'https://' + token + '@' + rootUrl.substring(8);
+    await exec(
+      'cd ./project-template && ' +
+        'git config init.defaultBranch main && ' +
+        'git init &&  ' +
+        'git submodule add ' +
+        msUrl +
+        ' nest && ' +
+        'git add . && ' +
+        'git commit -m "first commit"  &&' +
+        'git remote add origin ' +
+        githubUrl +
+        ' && ' +
+        'git push -u origin main ',
+    );
+  }
+  private static gitCleanup() {
+    exec(
+      'cd ./project-template && rm -rf .git && rm .gitmodules && rm -rf nest/.git',
+    );
   }
 
-  private static addFilesToRoot(token, msUrl, rootUrl) {
-    // TODO: fix
-    exec(`
-      cd project-template && \
-      git config init.defaultBranch main && \
-      git init && \
-      git submodule add ${msUrl} nest && \
-      git add . && \
-      git commit -m "first commit" && \
-      git remote add origin https://${token}@${rootUrl.substring(8)} && \
-      git push -u origin main && \
-      rm -rf .git
-    `);
-    // exec('ls').stdout.on('data', (data) => {
-    //   console.log(data);
-    // });
-  }
+  deleteRepos = (msRepoName: any, rootRepoName: any, token: any) =>
+    zip(
+      this.deleteRepoHttpRequest(msRepoName, token).pipe(
+        map((res) => res.status),
+      ),
+      this.deleteRepoHttpRequest(rootRepoName, token).pipe(
+        map((res) => res.status),
+      ),
+    ).pipe(
+      map(([res1, res2]) => {
+        return { res1, res2 };
+      }),
+    );
+
+  private deleteRepoHttpRequest = (repoName, token) =>
+    this.httpService.delete('https://api.github.com/repos/sasp1/' + repoName, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 }
