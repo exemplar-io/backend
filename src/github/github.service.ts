@@ -135,9 +135,12 @@ export class GithubService {
     );
 
   private deleteRepoHttpRequest = (repoName, token) =>
-    this.httpService.delete('https://api.github.com/repos/sasp1/' + repoName, {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    this.httpService.delete(
+      'https://api.github.com/repos/christianhjelmslund/' + repoName,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
-    });
+    );
 }
