@@ -1,0 +1,53 @@
+version: '3.7'
+services:
+  redis:
+    image: 'redis'
+    ports:
+      - '6379:6379'
+    networks:
+      - nesjs-network
+  api:
+    container_name: nestjs_api_dev
+    image: nestjs-api-dev:1.0.0
+    build:
+      context: ./api
+      target: development
+      dockerfile: ./Dockerfile
+    command: npm run start:debug
+    ports:
+      - 3000:3000
+      - 9229:9229
+    networks:
+      - nesjs-network
+    links:
+      - redis
+    depends_on:
+      - redis
+    volumes:
+      - ./api:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: unless-stopped
+  ms:
+    container_name: nestjs_ms_dev
+    image: nestjs-ms-dev:1.0.0
+    build:
+      context: ./ms
+      target: development
+      dockerfile: ./Dockerfile
+    command: npm run start:debug
+    # ports:
+    #   - 3000:3000
+    #   - 9229:9229
+    networks:
+      - nesjs-network
+    links:
+      - redis
+    depends_on:
+      - redis
+    volumes:
+      - ./ms:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: unless-stopped
+
+networks:
+  nesjs-network:
