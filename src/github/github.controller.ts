@@ -29,20 +29,28 @@ export class GithubController {
   createRepo(@Body() createRepoDto: CreateRepoDto) {
     return this.githubService.createRepo(
       createRepoDto.msRepoName,
+      createRepoDto.apiRepoName,
       createRepoDto.rootRepoName,
       createRepoDto.githubToken,
     );
   }
 
   @ApiQuery({ name: 'msRepo', example: 'ms-repo-name' })
+  @ApiQuery({ name: 'apiRepo', example: 'api-repo-name' })
   @ApiQuery({ name: 'rootRepo', example: 'root-repo-name' })
   @ApiQuery({ name: 'toke ', example: 'token' })
   @Delete('repo')
   deleteRepos(
     @Query('msRepo') msRepoName,
+    @Query('apiRepo') apiRepoName,
     @Query('rootRepo') rootRepoName,
     @Query('token') token,
   ) {
-    return this.githubService.deleteRepos(msRepoName, rootRepoName, token);
+    return this.githubService.deleteRepos(
+      msRepoName,
+      apiRepoName,
+      rootRepoName,
+      token,
+    );
   }
 }

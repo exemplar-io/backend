@@ -37,16 +37,21 @@ export class GithubService {
         }),
       );
 
-  createRepo = (msName, rootName, token) =>
+  createRepo = (msName, apiName, rootName, token) =>
     zip(
       this.createRepoHTTPRequest(msName, token),
+      this.createRepoHTTPRequest(apiName, token),
       this.createRepoHTTPRequest(rootName, token),
     ).pipe(
-      map(async ([msUrl, rootUrl]) => {
-        GithubService.addFilesToRepo(token, msUrl);
-        await GithubService.addFilesToRoot(token, msUrl, rootUrl);
-        GithubService.gitCleanup();
-        return { msUrl, rootUrl };
+      map(async ([msUrl, apiUrl, rootUrl]) => {
+        console.log(msUrl);
+        console.log(apiUrl);
+
+        await GithubService.addFilesToRepo(token, msUrl, 'ms');
+        await GithubService.addFilesToRepo(token, apiUrl, 'api');
+        await GithubService.addFilesToRoot(token, msUrl, apiUrl, rootUrl);
+        await GithubService.gitCleanup();
+        return { msUrl, apiUrl, rootUrl };
       }),
     );
 
@@ -65,15 +70,17 @@ export class GithubService {
       )
       .pipe(map((res) => res.data.clone_url));
 
-  private static addFilesToRepo(token, url: string) {
+  private static async addFilesToRepo(token, url: string, name: string) {
     const githubUrl = 'https://' + token + '@' + url.substring(8);
 
-    exec(
-      'cd ./project-template/nest && ' +
+    await exec(
+      'cd ./project-template/' +
+        name +
+        ' && ' +
         'git config init.defaultBranch main && ' +
         'git init &&  ' +
         'git add . && ' +
-        'git commit -m "first commit"  &&' +
+        'git commit -m "first commit"  && ' +
         'git remote add origin ' +
         githubUrl +
         ' && ' +
@@ -81,7 +88,7 @@ export class GithubService {
     );
   }
 
-  private static async addFilesToRoot(token, msUrl, rootUrl) {
+  private static async addFilesToRoot(token, msUrl, apiUrl, rootUrl) {
     const githubUrl = 'https://' + token + '@' + rootUrl.substring(8);
     await exec(
       'cd ./project-template && ' +
@@ -89,32 +96,41 @@ export class GithubService {
         'git init &&  ' +
         'git submodule add ' +
         msUrl +
-        ' nest && ' +
+        ' ms && ' +
+        'git submodule add ' +
+        apiUrl +
+        ' api && ' +
         'git add . && ' +
-        'git commit -m "first commit"  &&' +
+        'git commit -m "first commit"  && ' +
         'git remote add origin ' +
         githubUrl +
         ' && ' +
         'git push -u origin main ',
     );
   }
-  private static gitCleanup() {
-    exec(
-      'cd ./project-template && rm -rf .git && rm .gitmodules && rm -rf nest/.git',
-    );
+  private static async gitCleanup() {
+    exec('cd ./project-template && rm -rf .git .gitmodules ms/.git api/.git');
   }
 
-  deleteRepos = (msRepoName: any, rootRepoName: any, token: any) =>
+  deleteRepos = (
+    msRepoName: any,
+    apiRepoName: any,
+    rootRepoName: any,
+    token: any,
+  ) =>
     zip(
       this.deleteRepoHttpRequest(msRepoName, token).pipe(
+        map((res) => res.status),
+      ),
+      this.deleteRepoHttpRequest(apiRepoName, token).pipe(
         map((res) => res.status),
       ),
       this.deleteRepoHttpRequest(rootRepoName, token).pipe(
         map((res) => res.status),
       ),
     ).pipe(
-      map(([res1, res2]) => {
-        return { res1, res2 };
+      map(([res1, res2, res3]) => {
+        return { res1, res2, res3 };
       }),
     );
 
