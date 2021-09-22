@@ -1,11 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { map, zip } from 'rxjs';
-// import { exec } from 'child_process';
+import { catchError, map, zip } from 'rxjs';
 import { UnauthorizedException } from '@nestjs/common';
-import { UnprocessableEntityException } from '@nestjs/common';
-import { InternalServerErrorException } from '@nestjs/common';
 import { promisify } from 'util';
 const exec = promisify(require('child_process').exec);
 
@@ -44,9 +41,6 @@ export class GithubService {
       this.createRepoHTTPRequest(rootName, token),
     ).pipe(
       map(async ([msUrl, apiUrl, rootUrl]) => {
-        console.log(msUrl);
-        console.log(apiUrl);
-
         await GithubService.addFilesToRepo(token, msUrl, 'ms');
         await GithubService.addFilesToRepo(token, apiUrl, 'api');
         await GithubService.addFilesToRoot(token, msUrl, apiUrl, rootUrl);
@@ -68,7 +62,17 @@ export class GithubService {
           },
         },
       )
-      .pipe(map((res) => res.data.clone_url));
+      .pipe(
+        map((res) => {
+          return res.data.clone_url;
+        }),
+        catchError((err) => {
+          throw new HttpException(
+            err.response.data.message,
+            err.response.status,
+          );
+        }),
+      );
 
   private static async addFilesToRepo(token, url: string, name: string) {
     const githubUrl = 'https://' + token + '@' + url.substring(8);
@@ -119,15 +123,9 @@ export class GithubService {
     token: any,
   ) =>
     zip(
-      this.deleteRepoHttpRequest(msRepoName, token).pipe(
-        map((res) => res.status),
-      ),
-      this.deleteRepoHttpRequest(apiRepoName, token).pipe(
-        map((res) => res.status),
-      ),
-      this.deleteRepoHttpRequest(rootRepoName, token).pipe(
-        map((res) => res.status),
-      ),
+      this.deleteRepoHttpRequest(msRepoName, token),
+      this.deleteRepoHttpRequest(apiRepoName, token),
+      this.deleteRepoHttpRequest(rootRepoName, token),
     ).pipe(
       map(([res1, res2, res3]) => {
         return { res1, res2, res3 };
@@ -135,12 +133,19 @@ export class GithubService {
     );
 
   private deleteRepoHttpRequest = (repoName, token) =>
-    this.httpService.delete(
-      'https://api.github.com/repos/christianhjelmslund/' + repoName,
-      {
+    this.httpService
+      .delete('https://api.github.com/repos/christianhjelmslund/' + repoName, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      },
-    );
+      })
+      .pipe(
+        map((res) => res.status),
+        catchError((err) => {
+          throw new HttpException(
+            err.response.data.message,
+            err.response.status,
+          );
+        }),
+      );
 }

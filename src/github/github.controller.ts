@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { Body, Controller, Delete, Post, Query } from '@nestjs/common';
+import { ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CreateRepoDto } from './dto/createRepoDto';
 import { GithubAuthDto } from './dto/githubAuthDto';
 import { GithubService } from './github.service';
@@ -38,7 +38,10 @@ export class GithubController {
   @ApiQuery({ name: 'msRepo', example: 'ms-repo-name' })
   @ApiQuery({ name: 'apiRepo', example: 'api-repo-name' })
   @ApiQuery({ name: 'rootRepo', example: 'root-repo-name' })
-  @ApiQuery({ name: 'toke ', example: 'token' })
+  @ApiQuery({
+    name: 'token',
+    example: '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',
+  })
   @Delete('repo')
   deleteRepos(
     @Query('msRepo') msRepoName,
