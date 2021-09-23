@@ -81,8 +81,8 @@ export class GithubService {
       'cd ./project-template/' +
         name +
         ' && ' +
-        'git config init.defaultBranch main && ' +
-        'git init &&  ' +
+        'git config --global user.email "you@example.com" && ' +
+        'git init -b main &&  ' +
         'git add . && ' +
         'git commit -m "first commit"  && ' +
         'git remote add origin ' +
@@ -96,8 +96,8 @@ export class GithubService {
     const githubUrl = 'https://' + token + '@' + rootUrl.substring(8);
     await exec(
       'cd ./project-template && ' +
-        'git config init.defaultBranch main && ' +
-        'git init &&  ' +
+        'git config --global user.email "you@example.com" && ' +
+        'git init -b main &&  ' +
         'git submodule add ' +
         msUrl +
         ' ms && ' +
