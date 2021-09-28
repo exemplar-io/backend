@@ -41,9 +41,19 @@ export class GithubService {
       this.createRepoHTTPRequest(rootName, token),
     ).pipe(
       map(async ([msUrl, apiUrl, rootUrl]) => {
-        await GithubService.addFilesToRepo(token, msUrl, 'ms');
-        await GithubService.addFilesToRepo(token, apiUrl, 'api');
+        await GithubService.gitConfig();
+        await Promise.all([
+          GithubService.addFilesToRepo(token, msUrl, 'ms'),
+          GithubService.addFilesToRepo(token, apiUrl, 'api'),
+        ]);
         await GithubService.addFilesToRoot(token, msUrl, apiUrl, rootUrl);
+
+        await Promise.all([
+          GithubService.pushFilesToRepo('ms'),
+          GithubService.pushFilesToRepo('api'),
+          GithubService.pushFilesToRepo(undefined),
+        ]);
+
         await GithubService.gitCleanup();
         return { msUrl, apiUrl, rootUrl };
       }),
@@ -74,21 +84,30 @@ export class GithubService {
         }),
       );
 
-  private static async addFilesToRepo(token, url: string, name: string) {
+  private static gitConfig() {
+    return exec('git config --global user.email "you@example.com"  ');
+  }
+
+  private static pushFilesToRepo(name: string) {
+    if (name)
+      return exec(
+        'cd ./project-template/' + name + ' && git push -u origin main',
+      );
+    return exec('cd ./project-template/ && git push -u origin main');
+  }
+
+  private static addFilesToRepo(token, url: string, name: string) {
     const githubUrl = 'https://' + token + '@' + url.substring(8);
 
-    await exec(
+    return exec(
       'cd ./project-template/' +
         name +
         ' && ' +
-        'git config --global user.email "you@example.com" && ' +
-        'git init -b main &&  ' +
+        'git init -b main && ' +
         'git add . && ' +
         'git commit -m "first commit"  && ' +
         'git remote add origin ' +
-        githubUrl +
-        ' && ' +
-        'git push -u origin main ',
+        githubUrl,
     );
   }
 
@@ -96,7 +115,6 @@ export class GithubService {
     const githubUrl = 'https://' + token + '@' + rootUrl.substring(8);
     await exec(
       'cd ./project-template && ' +
-        'git config --global user.email "you@example.com" && ' +
         'git init -b main &&  ' +
         'git submodule add ' +
         msUrl +
@@ -107,9 +125,7 @@ export class GithubService {
         'git add . && ' +
         'git commit -m "first commit"  && ' +
         'git remote add origin ' +
-        githubUrl +
-        ' && ' +
-        'git push -u origin main ',
+        githubUrl,
     );
   }
   private static async gitCleanup() {
@@ -134,7 +150,7 @@ export class GithubService {
 
   private deleteRepoHttpRequest = (repoName, token) =>
     this.httpService
-      .delete('https://api.github.com/repos/christianhjelmslund/' + repoName, {
+      .delete('https://api.github.com/repos/sasp1/' + repoName, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
