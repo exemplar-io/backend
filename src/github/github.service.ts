@@ -55,6 +55,7 @@ export class GithubService {
           frontendUrl,
           rootUrl,
         );
+        await GithubService.addFilesToRoot(token, msUrl, apiUrl, rootUrl);
 
         await Promise.all([
           GithubService.pushFilesToRepo('ms'),
