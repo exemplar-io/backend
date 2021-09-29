@@ -51,7 +51,7 @@ export class GithubService {
         await Promise.all([
           GithubService.pushFilesToRepo('ms'),
           GithubService.pushFilesToRepo('api'),
-          GithubService.pushFilesToRepo(undefined),
+          GithubService.pushFilesToRepo('root'),
         ]);
 
         await GithubService.gitCleanup();
@@ -89,7 +89,7 @@ export class GithubService {
   }
 
   private static pushFilesToRepo(name: string) {
-    if (name)
+    if (name !== 'root')
       return exec(
         'cd ./project-template/' + name + ' && git push -u origin main',
       );
