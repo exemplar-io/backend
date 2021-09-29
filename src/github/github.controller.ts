@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Post, Query } from '@nestjs/common';
 import { ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { create } from 'domain';
 import { CreateRepoDto } from './dto/createRepoDto';
 import { GithubAuthDto } from './dto/githubAuthDto';
 import { GithubService } from './github.service';
@@ -30,6 +31,7 @@ export class GithubController {
     return this.githubService.createRepo(
       createRepoDto.msRepoName,
       createRepoDto.apiRepoName,
+      createRepoDto.frontendName,
       createRepoDto.rootRepoName,
       createRepoDto.githubToken,
     );
