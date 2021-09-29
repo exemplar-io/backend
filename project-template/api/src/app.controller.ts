@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { AppService } from './app.service';
 
@@ -6,10 +6,12 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @Post()
+  login(@Body() body) {
+    return this.appService.login(body);
+  }
   @Get()
   getHello() {
-    console.log('yay');
-
     return this.appService.getHello();
   }
 }
