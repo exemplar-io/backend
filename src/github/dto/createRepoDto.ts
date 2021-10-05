@@ -14,6 +14,11 @@ export class CreateRepoDto {
 
   @IsString()
   @IsNotEmpty()
+  @ApiProperty({ example: 'frontend-repo-name' })
+  frontendRepoName: string;
+
+  @IsString()
+  @IsNotEmpty()
   @ApiProperty({ example: 'root-repo-name' })
   rootRepoName: string;
 

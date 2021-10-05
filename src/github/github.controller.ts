@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Post, Query } from '@nestjs/common';
 import { ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { create } from 'domain';
 import { CreateRepoDto } from './dto/createRepoDto';
 import { GithubAuthDto } from './dto/githubAuthDto';
 import { GithubService } from './github.service';
@@ -30,6 +31,7 @@ export class GithubController {
     return this.githubService.createRepo(
       createRepoDto.msRepoName,
       createRepoDto.apiRepoName,
+      createRepoDto.frontendRepoName,
       createRepoDto.rootRepoName,
       createRepoDto.githubToken,
     );
@@ -37,6 +39,7 @@ export class GithubController {
 
   @ApiQuery({ name: 'msRepo', example: 'ms-repo-name' })
   @ApiQuery({ name: 'apiRepo', example: 'api-repo-name' })
+  @ApiQuery({ name: 'frontendRepo', example: 'frontend-repo-name' })
   @ApiQuery({ name: 'rootRepo', example: 'root-repo-name' })
   @ApiQuery({
     name: 'token',
@@ -46,12 +49,14 @@ export class GithubController {
   deleteRepos(
     @Query('msRepo') msRepoName,
     @Query('apiRepo') apiRepoName,
+    @Query('frontendRepo') frontendRepoName,
     @Query('rootRepo') rootRepoName,
     @Query('token') token,
   ) {
     return this.githubService.deleteRepos(
       msRepoName,
       apiRepoName,
+      frontendRepoName,
       rootRepoName,
       token,
     );

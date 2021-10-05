@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { catchError, map, zip } from 'rxjs';
 import { UnauthorizedException } from '@nestjs/common';
 import { promisify } from 'util';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const exec = promisify(require('child_process').exec);
 
 @Injectable()
@@ -34,24 +35,33 @@ export class GithubService {
         }),
       );
 
-  createRepo = (msName, apiName, rootName, token) =>
+  createRepo = (msName, apiName, frontendName, rootName, token) =>
     zip(
       this.createRepoHTTPRequest(msName, token),
       this.createRepoHTTPRequest(apiName, token),
+      this.createRepoHTTPRequest(frontendName, token),
       this.createRepoHTTPRequest(rootName, token),
     ).pipe(
-      map(async ([msUrl, apiUrl, rootUrl]) => {
+      map(async ([msUrl, apiUrl, frontendUrl, rootUrl]) => {
         try {
           await GithubService.gitConfig();
           await Promise.all([
             GithubService.addFilesToRepo(token, msUrl, 'ms'),
             GithubService.addFilesToRepo(token, apiUrl, 'api'),
+            GithubService.addFilesToRepo(token, frontendUrl, 'frontend'),
           ]);
-          await GithubService.addFilesToRoot(token, msUrl, apiUrl, rootUrl);
+          await GithubService.addFilesToRoot(
+            token,
+            msUrl,
+            apiUrl,
+            frontendUrl,
+            rootUrl,
+          );
 
           await Promise.all([
             GithubService.pushFilesToRepo('ms'),
             GithubService.pushFilesToRepo('api'),
+            GithubService.pushFilesToRepo('frontend'),
             GithubService.pushFilesToRepo('root'),
           ]);
         } catch (e) {
@@ -115,7 +125,13 @@ export class GithubService {
     );
   }
 
-  private static async addFilesToRoot(token, msUrl, apiUrl, rootUrl) {
+  private static async addFilesToRoot(
+    token,
+    msUrl,
+    apiUrl,
+    frontendUrl,
+    rootUrl,
+  ) {
     const githubUrl = 'https://' + token + '@' + rootUrl.substring(8);
     await exec(
       'cd ./project-template && ' +
@@ -126,6 +142,9 @@ export class GithubService {
         'git submodule add ' +
         apiUrl +
         ' api && ' +
+        'git submodule add ' +
+        frontendUrl +
+        ' frontend && ' +
         'git add . && ' +
         'git commit -m "first commit"  && ' +
         'git remote add origin ' +
@@ -133,28 +152,32 @@ export class GithubService {
     );
   }
   private static async gitCleanup() {
-    exec('cd ./project-template && rm -rf .git .gitmodules ms/.git api/.git');
+    exec(
+      'cd ./project-template && rm -rf .git .gitmodules ms/.git api/.git frontend/.git',
+    );
   }
 
   deleteRepos = (
     msRepoName: any,
     apiRepoName: any,
+    frontendName: any,
     rootRepoName: any,
     token: any,
   ) =>
     zip(
       this.deleteRepoHttpRequest(msRepoName, token),
       this.deleteRepoHttpRequest(apiRepoName, token),
+      this.deleteRepoHttpRequest(frontendName, token),
       this.deleteRepoHttpRequest(rootRepoName, token),
     ).pipe(
-      map(([res1, res2, res3]) => {
-        return { res1, res2, res3 };
+      map(([res1, res2, res3, res4]) => {
+        return { res1, res2, res3, res4 };
       }),
     );
 
   private deleteRepoHttpRequest = (repoName, token) =>
     this.httpService
-      .delete('https://api.github.com/repos/christianhjelmslund/' + repoName, {
+      .delete('https://api.github.com/repos/sasp1/' + repoName, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
