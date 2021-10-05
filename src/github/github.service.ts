@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { catchError, map, zip } from 'rxjs';
 import { UnauthorizedException } from '@nestjs/common';
 import { promisify } from 'util';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const exec = promisify(require('child_process').exec);
 
 @Injectable()
@@ -42,28 +43,32 @@ export class GithubService {
       this.createRepoHTTPRequest(rootName, token),
     ).pipe(
       map(async ([msUrl, apiUrl, frontendUrl, rootUrl]) => {
-        await GithubService.gitConfig();
-        await Promise.all([
-          GithubService.addFilesToRepo(token, msUrl, 'ms'),
-          GithubService.addFilesToRepo(token, apiUrl, 'api'),
-          GithubService.addFilesToRepo(token, frontendUrl, 'frontend'),
-        ]);
-        await GithubService.addFilesToRoot(
-          token,
-          msUrl,
-          apiUrl,
-          frontendUrl,
-          rootUrl,
-        );
+        try {
+          await GithubService.gitConfig();
+          await Promise.all([
+            GithubService.addFilesToRepo(token, msUrl, 'ms'),
+            GithubService.addFilesToRepo(token, apiUrl, 'api'),
+            GithubService.addFilesToRepo(token, frontendUrl, 'frontend'),
+          ]);
+          await GithubService.addFilesToRoot(
+            token,
+            msUrl,
+            apiUrl,
+            frontendUrl,
+            rootUrl,
+          );
 
-        await Promise.all([
-          GithubService.pushFilesToRepo('ms'),
-          GithubService.pushFilesToRepo('api'),
-          GithubService.pushFilesToRepo('frontend'),
-          GithubService.pushFilesToRepo('root'),
-        ]);
+          await Promise.all([
+            GithubService.pushFilesToRepo('ms'),
+            GithubService.pushFilesToRepo('api'),
+            GithubService.pushFilesToRepo('frontend'),
+            GithubService.pushFilesToRepo('root'),
+          ]);
+        } catch (e) {
+          await GithubService.gitCleanup();
+          throw e;
+        }
 
-        await GithubService.gitCleanup();
         return { msUrl, apiUrl, rootUrl };
       }),
     );
