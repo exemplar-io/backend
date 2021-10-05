@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Post()
+  @Post('login')
   login(@Body() body) {
     return this.appService.login(body);
   }
