@@ -41,20 +41,24 @@ export class GithubService {
       this.createRepoHTTPRequest(rootName, token),
     ).pipe(
       map(async ([msUrl, apiUrl, rootUrl]) => {
-        await GithubService.gitConfig();
-        await Promise.all([
-          GithubService.addFilesToRepo(token, msUrl, 'ms'),
-          GithubService.addFilesToRepo(token, apiUrl, 'api'),
-        ]);
-        await GithubService.addFilesToRoot(token, msUrl, apiUrl, rootUrl);
+        try {
+          await GithubService.gitConfig();
+          await Promise.all([
+            GithubService.addFilesToRepo(token, msUrl, 'ms'),
+            GithubService.addFilesToRepo(token, apiUrl, 'api'),
+          ]);
+          await GithubService.addFilesToRoot(token, msUrl, apiUrl, rootUrl);
 
-        await Promise.all([
-          GithubService.pushFilesToRepo('ms'),
-          GithubService.pushFilesToRepo('api'),
-          GithubService.pushFilesToRepo('root'),
-        ]);
+          await Promise.all([
+            GithubService.pushFilesToRepo('ms'),
+            GithubService.pushFilesToRepo('api'),
+            GithubService.pushFilesToRepo('root'),
+          ]);
+        } catch (e) {
+          await GithubService.gitCleanup();
+          throw e;
+        }
 
-        await GithubService.gitCleanup();
         return { msUrl, apiUrl, rootUrl };
       }),
     );
@@ -150,7 +154,7 @@ export class GithubService {
 
   private deleteRepoHttpRequest = (repoName, token) =>
     this.httpService
-      .delete('https://api.github.com/repos/sasp1/' + repoName, {
+      .delete('https://api.github.com/repos/christianhjelmslund/' + repoName, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
