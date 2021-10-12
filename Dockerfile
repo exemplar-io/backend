@@ -1,36 +1,30 @@
-# pull official base image
-# FROM node:alpine3.14
+FROM node:12.19.0-alpine3.9 AS development
 
-# # set working directory
-# WORKDIR /app
+WORKDIR /usr/src/app
 
-# # add `/app/node_modules/.bin` to $PATH
-# ENV PATH /app/node_modules/.bin:$PATH
+COPY package*.json ./
 
-# # install app dependencies
-# RUN apk add git
-# COPY package.json ./
-# COPY package-lock.json ./
-# RUN npm install
+RUN npm install glob rimraf
 
+RUN npm install --only=development
 
-# # add app
-# COPY . ./
+COPY . .
 
-# # start app
-# CMD ["nest", "start", "--watch"]
+RUN npm run build
 
-FROM node:15.4 as build
+FROM node:12.19.0-alpine3.9 as production
 
-WORKDIR /app
-COPY package*.json .
-RUN npm install 
-COPY . . 
-RUN npm run build 
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
 
-FROM node:15.4
-WORKDIR /app
-COPY package.json . 
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
 RUN npm install --only=production
-COPY --from=build /app/dist ./dist
-CMD npm run start:prod
+
+COPY . .
+
+COPY --from=development /usr/src/app/dist ./dist
+
+CMD ["node", "dist/main"]
