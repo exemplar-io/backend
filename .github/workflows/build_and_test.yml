@@ -56,4 +56,4 @@ jobs:
           APP_SECRET: ${{secrets.APP_SECRET}}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY --target production --build-arg APP_CLIENT_ID=$APP_CLIENT_ID --build-arg APP_SECRET=$APP_SECRET .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY
