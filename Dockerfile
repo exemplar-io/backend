@@ -23,6 +23,7 @@ ENV GITHUB_SECRET=$GITHUB_SECRET_ARG
 
 WORKDIR /usr/src/app
 
+RUN apk add git
 COPY package*.json ./
 
 RUN npm install --only=production
