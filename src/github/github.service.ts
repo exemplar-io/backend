@@ -177,7 +177,7 @@ export class GithubService {
     this.httpService
       .delete(
         'https://api.github.com/repos/' +
-          this.configService.get<string>('DELETE_GITHUB_REPO_NAME') +
+          this.configService.get<string>('DELETE_GITHUB_REPO_NAME', 'sasp1') +
           '/' +
           repoName,
         {
