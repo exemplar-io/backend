@@ -14,8 +14,11 @@ export class GithubService {
     private configService: ConfigService,
   ) {}
 
-  authGithub = (code: string) =>
-    this.httpService
+  authGithub = (code: string) => {
+    console.log(this.configService.get<string>('APP_CLIENT_ID'));
+    console.log(this.configService.get<string>('APP_SECRET'));
+
+    return this.httpService
       .post(
         'https://github.com/login/oauth/access_token',
         {
@@ -34,7 +37,7 @@ export class GithubService {
           return response.data['access_token'];
         }),
       );
-
+  };
   createRepo = (projectName, token) =>
     zip(
       this.createRepoHTTPRequest(projectName + '-ms', token),
