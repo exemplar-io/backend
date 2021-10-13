@@ -35,12 +35,12 @@ export class GithubService {
         }),
       );
 
-  createRepo = (msName, apiName, frontendName, rootName, token) =>
+  createRepo = (projectName, token) =>
     zip(
-      this.createRepoHTTPRequest(msName, token),
-      this.createRepoHTTPRequest(apiName, token),
-      this.createRepoHTTPRequest(frontendName, token),
-      this.createRepoHTTPRequest(rootName, token),
+      this.createRepoHTTPRequest(projectName + '-ms', token),
+      this.createRepoHTTPRequest(projectName + '-api', token),
+      this.createRepoHTTPRequest(projectName + '-frontend', token),
+      this.createRepoHTTPRequest(projectName, token),
     ).pipe(
       map(async ([msUrl, apiUrl, frontendUrl, rootUrl]) => {
         try {
@@ -158,18 +158,12 @@ export class GithubService {
     );
   }
 
-  deleteRepos = (
-    msRepoName: any,
-    apiRepoName: any,
-    frontendName: any,
-    rootRepoName: any,
-    token: any,
-  ) =>
+  deleteRepos = (projectName: any, token: any) =>
     zip(
-      this.deleteRepoHttpRequest(msRepoName, token),
-      this.deleteRepoHttpRequest(apiRepoName, token),
-      this.deleteRepoHttpRequest(frontendName, token),
-      this.deleteRepoHttpRequest(rootRepoName, token),
+      this.deleteRepoHttpRequest(projectName + '-ms', token),
+      this.deleteRepoHttpRequest(projectName + '-api', token),
+      this.deleteRepoHttpRequest(projectName + '-frontend', token),
+      this.deleteRepoHttpRequest(projectName, token),
     ).pipe(
       map(([res1, res2, res3, res4]) => {
         return { res1, res2, res3, res4 };
