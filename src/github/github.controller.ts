@@ -29,36 +29,18 @@ export class GithubController {
   @Post('repo')
   createRepo(@Body() createRepoDto: CreateRepoDto) {
     return this.githubService.createRepo(
-      createRepoDto.msRepoName,
-      createRepoDto.apiRepoName,
-      createRepoDto.frontendRepoName,
-      createRepoDto.rootRepoName,
+      createRepoDto.projectName,
       createRepoDto.githubToken,
     );
   }
 
-  @ApiQuery({ name: 'msRepo', example: 'ms-repo-name' })
-  @ApiQuery({ name: 'apiRepo', example: 'api-repo-name' })
-  @ApiQuery({ name: 'frontendRepo', example: 'frontend-repo-name' })
-  @ApiQuery({ name: 'rootRepo', example: 'root-repo-name' })
+  @ApiQuery({ name: 'projectName', example: 'Peareasy Project' })
   @ApiQuery({
     name: 'token',
     example: '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',
   })
   @Delete('repo')
-  deleteRepos(
-    @Query('msRepo') msRepoName,
-    @Query('apiRepo') apiRepoName,
-    @Query('frontendRepo') frontendRepoName,
-    @Query('rootRepo') rootRepoName,
-    @Query('token') token,
-  ) {
-    return this.githubService.deleteRepos(
-      msRepoName,
-      apiRepoName,
-      frontendRepoName,
-      rootRepoName,
-      token,
-    );
+  deleteRepos(@Query('projectName') projectName, @Query('token') token) {
+    return this.githubService.deleteRepos(projectName, token);
   }
 }
