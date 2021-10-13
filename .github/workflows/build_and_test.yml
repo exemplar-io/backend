@@ -6,8 +6,8 @@ name: build-and-test
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  # pull_request:
+  #   branches: [main]
 
 jobs:
   test:
@@ -26,3 +26,34 @@ jobs:
         run: npm run build --if-present
       - name: Testing
         run: npm test
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking out branch
+        uses: actions/checkout@v2
+      - name: Setting up node with version ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: backend
+          #          IMAGE_TAG: ${{ github.sha }}
+          APP_CLIENT_ID: ${{secrets.APP_CLIENT_ID}}
+          APP_SECRET: ${{secrets.APP_SECRET}}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY --target production --build-arg APP_CLIENT_ID=$APP_CLIENT_ID --build-arg APP_SECRET=$APP_SECRET .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY

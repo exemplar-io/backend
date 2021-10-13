@@ -19,8 +19,8 @@ export class GithubService {
       .post(
         'https://github.com/login/oauth/access_token',
         {
-          client_id: this.configService.get<string>('GITHUB_CLIENT_ID'),
-          client_secret: this.configService.get<string>('GITHUB_SECRET'),
+          client_id: this.configService.get<string>('APP_CLIENT_ID'),
+          client_secret: this.configService.get<string>('APP_SECRET'),
           code,
         },
         {
