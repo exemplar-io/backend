@@ -175,11 +175,17 @@ export class GithubService {
 
   private deleteRepoHttpRequest = (repoName, token) =>
     this.httpService
-      .delete('https://api.github.com/repos/sasp1/' + repoName, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      .delete(
+        'https://api.github.com/repos/' +
+          this.configService.get<string>('DELETE_GITHUB_REPO_NAME') +
+          '/' +
+          repoName,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      })
+      )
       .pipe(
         map((res) => res.status),
         catchError((err) => {
