@@ -64,6 +64,7 @@ export class GithubService {
             GithubService.pushFilesToRepo('frontend'),
             GithubService.pushFilesToRepo('root'),
           ]);
+          await GithubService.gitCleanup();
         } catch (e) {
           await GithubService.gitCleanup();
           throw e;
