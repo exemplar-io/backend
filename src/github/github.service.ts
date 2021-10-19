@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { catchError, map, zip } from 'rxjs';
+import { catchError, concatMap, map, zip } from 'rxjs';
 import { UnauthorizedException } from '@nestjs/common';
 import { promisify } from 'util';
 import * as fs from 'fs';
@@ -71,7 +71,7 @@ export class GithubService {
             GithubService.pushFilesToRepo('root'),
           ]);
 
-          // await this.updateGithubPagesBranch(frontendUrl, token);
+          await this.updateGithubPagesBranch(frontendUrl, token).toPromise();
 
           await GithubService.gitCleanup();
         } catch (e) {
@@ -142,29 +142,46 @@ export class GithubService {
       .substring(19, url.length - 4)
       .split('/');
 
-    console.log(token);
-
-    console.log(username, projectName);
-    console.log(
-      `https://api.github.com/repos/${username}/${projectName}/pages`,
-    );
-
     return this.httpService
-      .put(
-        `https://api.github.com/repos/${username}/${projectName}/pages`,
-        {
-          source: {
-            branch: 'gh-pages',
-            path: '/',
-          },
+      .get(`https://api.github.com/repos/${username}/${projectName}/branches`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+      })
+      .pipe(
+        concatMap((res) =>
+          this.httpService.post(
+            `https://api.github.com/repos/${username}/${projectName}/git/refs`,
+            {
+              ref: 'refs/heads/gh-pages',
+              sha: res.data[0].commit.sha,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          ),
+        ),
       )
-      .toPromise();
+      .pipe(
+        concatMap(() =>
+          this.httpService.post(
+            `https://api.github.com/repos/${username}/${projectName}/pages`,
+            {
+              source: {
+                branch: 'gh-pages',
+                path: '/',
+              },
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          ),
+        ),
+      );
   }
 
   private static addFilesToRepo(token, url: string, name: string) {
