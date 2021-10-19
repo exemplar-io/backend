@@ -39,7 +39,7 @@ export class GithubService {
         }),
       );
   };
-  createRepo = (projectName, token) =>
+  createRepo = (projectName: string, token: string) =>
     zip(
       this.createRepoHTTPRequest(projectName + '-ms', token),
       this.createRepoHTTPRequest(projectName + '-api', token),
