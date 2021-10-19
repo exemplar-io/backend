@@ -83,7 +83,7 @@ export class GithubService {
       }),
     );
 
-  private createRepoHTTPRequest = (name, token) =>
+  private createRepoHTTPRequest = (name: string, token: string) =>
     this.httpService
       .post(
         'https://api.github.com/user/repos',
