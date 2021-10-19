@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { catchError, map, zip } from 'rxjs';
 import { UnauthorizedException } from '@nestjs/common';
 import { promisify } from 'util';
+import * as fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const exec = promisify(require('child_process').exec);
 
@@ -32,7 +33,7 @@ export class GithubService {
       )
       .pipe(
         map((response) => {
-          if (response.data.error)
+          if (response.data && response.data.error)
             throw new UnauthorizedException(response.data.error_description);
           return response.data['access_token'];
         }),
@@ -60,6 +61,8 @@ export class GithubService {
             frontendUrl,
             rootUrl,
           );
+
+          GithubService.updateHomepageUrl(token, frontendUrl);
 
           await Promise.all([
             GithubService.pushFilesToRepo('ms'),
@@ -112,6 +115,42 @@ export class GithubService {
         'cd ./project-template/' + name + ' && git push -u origin main',
       );
     return exec('cd ./project-template/ && git push -u origin main');
+  }
+
+  private static updateHomepageUrl(token, url) {
+    console.log(url);
+
+    const fileLines = fs
+      .readFileSync('./project-template/frontend/package.json')
+      .toString()
+      .split('\n');
+    fileLines.splice(2, 0, '"homepage": "hej",');
+    // console.log(fileLines);
+
+    // fileLines.join('');
+    // fs.createWriteStream(fileLines.join(''));
+    console.log(fileLines);
+
+    fs.writeFileSync(
+      './project-template/frontend/package.json',
+      JSON.stringify(fileLines),
+    );
+    // const hej = fileLines.join('');
+    // fs.createWriteStream(hej);
+    // console.log(fileLines.join(''));
+
+    fs.readFile(
+      './project-template/frontend/package.json',
+      'utf8',
+      (err, data) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        console.log(data);
+      },
+    );
+    // console.log(fileLines);
   }
 
   private static addFilesToRepo(token, url: string, name: string) {
