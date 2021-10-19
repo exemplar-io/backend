@@ -1,9 +1,10 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { catchError, map, zip } from 'rxjs';
+import { catchError, concatMap, map, zip } from 'rxjs';
 import { UnauthorizedException } from '@nestjs/common';
 import { promisify } from 'util';
+import * as fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const exec = promisify(require('child_process').exec);
 
@@ -32,7 +33,7 @@ export class GithubService {
       )
       .pipe(
         map((response) => {
-          if (response.data.error)
+          if (response.data && response.data.error)
             throw new UnauthorizedException(response.data.error_description);
           return response.data['access_token'];
         }),
@@ -61,12 +62,17 @@ export class GithubService {
             rootUrl,
           );
 
+          GithubService.updateHomepageUrl(frontendUrl);
+
           await Promise.all([
             GithubService.pushFilesToRepo('ms'),
             GithubService.pushFilesToRepo('api'),
             GithubService.pushFilesToRepo('frontend'),
             GithubService.pushFilesToRepo('root'),
           ]);
+
+          await this.updateGithubPagesBranch(frontendUrl, token).toPromise();
+
           await GithubService.gitCleanup();
         } catch (e) {
           await GithubService.gitCleanup();
@@ -112,6 +118,70 @@ export class GithubService {
         'cd ./project-template/' + name + ' && git push -u origin main',
       );
     return exec('cd ./project-template/ && git push -u origin main');
+  }
+
+  private static updateHomepageUrl(url: string) {
+    const [username, projectName] = url
+      .substring(19, url.length - 4)
+      .split('/');
+
+    const fileLines = fs
+      .readFileSync('./project-template/frontend/package.json')
+      .toString()
+      .split('\n');
+    fileLines[2] = `  "homepage": "https://${username}.github.io/${projectName}/",`;
+
+    fs.writeFileSync(
+      './project-template/frontend/package.json',
+      fileLines.join('\n'),
+    );
+  }
+
+  private updateGithubPagesBranch(url: string, token: string) {
+    const [username, projectName] = url
+      .substring(19, url.length - 4)
+      .split('/');
+
+    return this.httpService
+      .get(`https://api.github.com/repos/${username}/${projectName}/branches`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .pipe(
+        concatMap((res) =>
+          this.httpService.post(
+            `https://api.github.com/repos/${username}/${projectName}/git/refs`,
+            {
+              ref: 'refs/heads/gh-pages',
+              sha: res.data[0].commit.sha,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          ),
+        ),
+      )
+      .pipe(
+        concatMap(() =>
+          this.httpService.post(
+            `https://api.github.com/repos/${username}/${projectName}/pages`,
+            {
+              source: {
+                branch: 'gh-pages',
+                path: '/',
+              },
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          ),
+        ),
+      );
   }
 
   private static addFilesToRepo(token, url: string, name: string) {
