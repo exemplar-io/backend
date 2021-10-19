@@ -62,7 +62,7 @@ export class GithubService {
             rootUrl,
           );
 
-          GithubService.updateHomepageUrl(token, frontendUrl);
+          GithubService.updateHomepageUrl(frontendUrl);
 
           await Promise.all([
             GithubService.pushFilesToRepo('ms'),
@@ -70,6 +70,9 @@ export class GithubService {
             GithubService.pushFilesToRepo('frontend'),
             GithubService.pushFilesToRepo('root'),
           ]);
+
+          // await this.updateGithubPagesBranch(frontendUrl, token);
+
           await GithubService.gitCleanup();
         } catch (e) {
           await GithubService.gitCleanup();
@@ -117,40 +120,51 @@ export class GithubService {
     return exec('cd ./project-template/ && git push -u origin main');
   }
 
-  private static updateHomepageUrl(token, url) {
-    console.log(url);
+  private static updateHomepageUrl(url: string) {
+    const [username, projectName] = url
+      .substring(19, url.length - 4)
+      .split('/');
 
     const fileLines = fs
       .readFileSync('./project-template/frontend/package.json')
       .toString()
       .split('\n');
-    fileLines.splice(2, 0, '"homepage": "hej",');
-    // console.log(fileLines);
-
-    // fileLines.join('');
-    // fs.createWriteStream(fileLines.join(''));
-    console.log(fileLines);
+    fileLines[2] = `  "homepage": "https://${username}.github.io/${projectName}/",`;
 
     fs.writeFileSync(
       './project-template/frontend/package.json',
-      JSON.stringify(fileLines),
+      fileLines.join('\n'),
     );
-    // const hej = fileLines.join('');
-    // fs.createWriteStream(hej);
-    // console.log(fileLines.join(''));
+  }
 
-    fs.readFile(
-      './project-template/frontend/package.json',
-      'utf8',
-      (err, data) => {
-        if (err) {
-          console.error(err);
-          return;
-        }
-        console.log(data);
-      },
+  private updateGithubPagesBranch(url: string, token: string) {
+    const [username, projectName] = url
+      .substring(19, url.length - 4)
+      .split('/');
+
+    console.log(token);
+
+    console.log(username, projectName);
+    console.log(
+      `https://api.github.com/repos/${username}/${projectName}/pages`,
     );
-    // console.log(fileLines);
+
+    return this.httpService
+      .put(
+        `https://api.github.com/repos/${username}/${projectName}/pages`,
+        {
+          source: {
+            branch: 'gh-pages',
+            path: '/',
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+      .toPromise();
   }
 
   private static addFilesToRepo(token, url: string, name: string) {
