@@ -76,6 +76,8 @@ export class GithubService {
           await GithubService.gitCleanup();
         } catch (e) {
           await GithubService.gitCleanup();
+          console.log(e);
+
           throw e;
         }
 
