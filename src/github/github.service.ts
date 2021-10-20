@@ -112,7 +112,9 @@ export class GithubService {
       );
 
   private static gitConfig() {
-    return exec('git config --global user.email "you@example.com"  ');
+    return exec(
+      'git config --global user.email "peareasy@life.com"  && git config --global user.name "PearEasy"',
+    );
   }
 
   private static pushFilesToRepo(name: string) {
