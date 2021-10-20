@@ -15,6 +15,8 @@ export class GithubService {
     private configService: ConfigService,
   ) {}
 
+  private static userName = '';
+
   authGithub = (code: string) => {
     console.log(this.configService.get<string>('APP_CLIENT_ID'));
     console.log(this.configService.get<string>('APP_SECRET'));
@@ -130,6 +132,8 @@ export class GithubService {
       .substring(19, url.length - 4)
       .split('/');
 
+    GithubService.userName = username;
+
     const fileLines = fs
       .readFileSync('./project-template/frontend/package.json')
       .toString()
@@ -206,11 +210,11 @@ export class GithubService {
   }
 
   private static async addFilesToRoot(
-    token,
-    msUrl,
-    apiUrl,
-    frontendUrl,
-    rootUrl,
+    token: string,
+    msUrl: string,
+    apiUrl: string,
+    frontendUrl: string,
+    rootUrl: string,
   ) {
     const githubUrl = 'https://' + token + '@' + rootUrl.substring(8);
     await exec(
@@ -249,13 +253,13 @@ export class GithubService {
       }),
     );
 
-  private deleteRepoHttpRequest = (repoName, token) =>
+  private deleteRepoHttpRequest = (repoName: string, token: string) =>
     this.httpService
       .delete(
-        'https://api.github.com/repos/' +
-          this.configService.get<string>('DELETE_GITHUB_REPO_NAME', 'sasp1') +
-          '/' +
-          repoName,
+        `https://api.github.com/repos/${
+          GithubService.userName ||
+          this.configService.get<string>('DELETE_GITHUB_REPO_NAME', 'sasp1')
+        }/${repoName}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
