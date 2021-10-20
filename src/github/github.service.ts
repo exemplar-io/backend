@@ -120,7 +120,7 @@ export class GithubService {
       return exec(
         'cd ./project-template/' + name + ' && git push -u origin main',
       );
-    return exec('cd ./project-template/ && git push -u origin main');
+    return exec('cd ./project-template/ && git push -u origin main ');
   }
 
   private static updateHomepageUrl(url: string) {
