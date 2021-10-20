@@ -49,6 +49,9 @@ export class GithubService {
       map(async ([msUrl, apiUrl, frontendUrl, rootUrl]) => {
         try {
           await GithubService.gitConfig();
+
+          GithubService.updateHomepageUrl(frontendUrl);
+
           await Promise.all([
             GithubService.addFilesToRepo(token, msUrl, 'ms'),
             GithubService.addFilesToRepo(token, apiUrl, 'api'),
@@ -62,8 +65,6 @@ export class GithubService {
             rootUrl,
           );
 
-          GithubService.updateHomepageUrl(frontendUrl);
-
           await Promise.all([
             GithubService.pushFilesToRepo('ms'),
             GithubService.pushFilesToRepo('api'),
@@ -71,7 +72,7 @@ export class GithubService {
             GithubService.pushFilesToRepo('root'),
           ]);
 
-          await this.updateGithubPagesBranch(frontendUrl, token).toPromise();
+          // await this.updateGithubPagesBranch(frontendUrl, token).toPromise();
 
           await GithubService.gitCleanup();
         } catch (e) {
@@ -139,6 +140,7 @@ export class GithubService {
     );
   }
 
+  // Isn't currently called since it created some Github bugs returning 500
   private updateGithubPagesBranch(url: string, token: string) {
     const [username, projectName] = url
       .substring(19, url.length - 4)
