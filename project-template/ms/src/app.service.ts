@@ -16,8 +16,6 @@ export class AppService {
   ];
 
   login(loginDto: LoginDto): string {
-    console.log(loginDto);
-
     const idx = this.users.findIndex(
       (u) =>
         u.username === loginDto.username && u.password === loginDto.password,
