@@ -1,5 +1,4 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
 import { AppService } from './app.service';
 
 @Controller()

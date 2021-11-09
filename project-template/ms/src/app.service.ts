@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dtos/login.dto';
 var jwt = require('jsonwebtoken');
@@ -22,7 +23,7 @@ export class AppService {
         u.username === loginDto.username && u.password === loginDto.password,
     );
 
-    if (idx === -1) return '401';
+    if (idx === -1) throw new UnauthorizedException();
 
     return this.jwtService.sign(loginDto);
   }
