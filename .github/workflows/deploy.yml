@@ -34,5 +34,5 @@ jobs:
         run: |
           echo $APP_CLIENT_ID 
           echo $APP_SECRET
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY --target production --build-arg APP_CLIENT_ID_ARG=$APP_CLIENT_ID --build-arg APP_SECRET_ARG=$APP_SECRET .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY
+          docker build -t public.ecr.aws/t0i9g0c1/$ECR_REPOSITORY --target production --build-arg APP_CLIENT_ID_ARG=$APP_CLIENT_ID --build-arg APP_SECRET_ARG=$APP_SECRET .
+          docker push public.ecr.aws/t0i9g0c1/$ECR_REPOSITORY
