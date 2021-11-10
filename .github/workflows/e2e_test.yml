@@ -18,7 +18,7 @@ jobs:
         with:
           collection: https://www.getpostman.com/collections/c6ca15eb302ca7b855ec
           environment: postman_environment.json
-          working-dir: ./proj
+          workingDir: ./proj
 
       # - name: Docker compose up
       #   run: cd proj && docker-compose up --build  -d
