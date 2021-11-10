@@ -17,4 +17,4 @@ jobs:
       - name: Run Postman tests
         uses: matt-ball/newman-action@v1.0.2
         with:
-          collection: postman_collection.json
+          collection: https://www.getpostman.com/collections/c6ca15eb302ca7b855ec
