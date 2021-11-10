@@ -14,13 +14,17 @@ jobs:
         run: cd proj && git pull --recurse-submodules --jobs=10
       - name: Yo
         run: ls proj
-      - name: Run Postman tests
-        # working-directory: ./proj
-        uses: matt-ball/newman-action@v1.0.2
-        with:
-          # work-dir: ./proj
-          collection: https://www.getpostman.com/collections/c6ca15eb302ca7b855ec
-          environment: .proj/postman_environment.json
+      - name: newman install
+        run: npm i -g newman
+      - name: Run tests
+        run: newman run https://www.getpostman.com/collections/c6ca15eb302ca7b855ec
+      # - name: Run Postman tests
+      #   # working-directory: ./proj
+      #   uses: matt-ball/newman-action@v1.0.2
+      #   with:
+      #     # work-dir: ./proj
+      #     collection: https://www.getpostman.com/collections/c6ca15eb302ca7b855ec
+      #     environment: .proj/postman_environment.json
 
       # - name: Docker compose up
       #   run: cd proj && docker-compose up --build  -d
