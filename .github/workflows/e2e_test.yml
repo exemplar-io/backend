@@ -12,8 +12,8 @@ jobs:
         run: git clone --recurse-submodules -j8 https://github.com/sasp1/proj.git
       - name: Update submodule references
         run: cd proj && git pull --recurse-submodules --jobs=10
-      - name: Yo
-        run: ls proj
+      - name: Docker compose up
+        run: cd proj && docker-compose up --build  -d
       - name: newman install
         run: npm i -g newman
       - name: Run tests
@@ -25,6 +25,3 @@ jobs:
       #     # work-dir: ./proj
       #     collection: https://www.getpostman.com/collections/c6ca15eb302ca7b855ec
       #     environment: .proj/postman_environment.json
-
-      # - name: Docker compose up
-      #   run: cd proj && docker-compose up --build  -d
