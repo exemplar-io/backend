@@ -11,4 +11,4 @@ jobs:
       - name: Cloning project
         run: git clone --recurse-submodules -j8 https://github.com/sasp1/proj.git
       - name: Docker compose up
-        run: docker-compose up --build -d
+        run: cd proj && docker-compose up --build -d
