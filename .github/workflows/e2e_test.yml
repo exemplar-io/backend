@@ -11,9 +11,9 @@ jobs:
       - name: Cloning project
         run: git clone --recurse-submodules -j8 https://github.com/sasp1/proj.git
       - name: Update submodule references
-        run: git pull --recurse-submodules --jobs=10
+        run: cd proj && git pull --recurse-submodules --jobs=10
       - name: Docker compose up
-        run: cd proj && docker-compose up --build -d
+        run: docker-compose up --build -d
       - name: Run Postman tests
         uses: matt-ball/newman-action@v1.0.2
         with:
