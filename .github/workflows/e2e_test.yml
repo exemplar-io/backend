@@ -16,9 +16,9 @@ jobs:
         # working-directory: ./proj
         uses: matt-ball/newman-action@v1.0.2
         with:
+          folder: ./proj
           collection: https://www.getpostman.com/collections/c6ca15eb302ca7b855ec
           environment: postman_environment.json
-          workingDir: ./proj
 
       # - name: Docker compose up
       #   run: cd proj && docker-compose up --build  -d
