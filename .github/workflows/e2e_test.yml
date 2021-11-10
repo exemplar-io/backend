@@ -12,6 +12,8 @@ jobs:
         run: git clone --recurse-submodules -j8 https://github.com/sasp1/proj.git
       - name: Update submodule references
         run: cd proj && git pull --recurse-submodules --jobs=10
+      - name: Yo
+        run: ls
       - name: Run Postman tests
         # working-directory: ./proj
         uses: matt-ball/newman-action@v1.0.2
