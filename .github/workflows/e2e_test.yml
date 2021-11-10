@@ -13,7 +13,7 @@ jobs:
       - name: Update submodule references
         run: cd proj && git pull --recurse-submodules --jobs=10
       - name: Yo
-        run: ls
+        run: ls proj
       - name: Run Postman tests
         # working-directory: ./proj
         uses: matt-ball/newman-action@v1.0.2
