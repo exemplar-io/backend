@@ -13,7 +13,7 @@ jobs:
       - name: Update submodule references
         run: cd proj && git pull --recurse-submodules --jobs=10
       - name: Docker compose up
-        run: docker-compose up --build -d
+        run: cd proj && docker-compose up --build -d
       - name: Run Postman tests
         uses: matt-ball/newman-action@v1.0.2
         with:
