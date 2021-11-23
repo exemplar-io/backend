@@ -9,7 +9,6 @@ export class AppService {
   login(user) {
     return this.clientProxy.send('login', user).pipe(
       map((res) => {
-        if (res === '401') throw new UnauthorizedException();
         return res;
       }),
     );
