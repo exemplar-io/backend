@@ -1,0 +1,30 @@
+name: 'Build and test'
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sleep for 10 seconds
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '10s'
+      - name: Cloning project
+        run: git clone --recurse-submodules -j8 
+      - name: Update submodule references
+        working-directory: 
+        run: git pull --recurse-submodules --jobs=10
+      - name: Docker Compose up
+        working-directory: 
+        run: |
+          docker-compose up --build  -d
+          sleep 10
+      - name: Newman install
+        run: npm i -g newman
+      - name: Run Postman Tests
+        run: newman run https://www.getpostman.com/collections/c6ca15eb302ca7b855ec --delay-request 2000
