@@ -53,6 +53,7 @@ export class GithubService {
           await GithubService.gitConfig();
 
           GithubService.updateHomepageUrl(frontendUrl);
+          GithubService.updateGithubE2ETestUrl(rootUrl, projectName);
 
           await Promise.all([
             GithubService.addFilesToRepo(token, msUrl, 'ms'),
@@ -77,8 +78,10 @@ export class GithubService {
           // await this.updateGithubPagesBranch(frontendUrl, token).toPromise();
 
           await GithubService.gitCleanup();
+          GithubService.workflowCleanup(rootUrl, projectName);
         } catch (e) {
           await GithubService.gitCleanup();
+          GithubService.workflowCleanup(rootUrl, projectName);
           console.log(e);
 
           throw e;
@@ -145,6 +148,24 @@ export class GithubService {
       fileLines.join('\n'),
     );
   }
+
+  private static updateGithubE2ETestUrl = (
+    rootUrl: string,
+    projectName: string,
+  ) => {
+    const fileLines = fs
+      .readFileSync('./project-template/api/.github/workflows/e2e_test.yml')
+      .toString()
+      .split('\n');
+    fileLines[17] += ` ${rootUrl}`;
+    fileLines[19] += ` ${projectName}`;
+    fileLines[22] += ` ${projectName}`;
+
+    fs.writeFileSync(
+      './project-template/api/.github/workflows/e2e_test.yml',
+      fileLines.join('\n'),
+    );
+  };
 
   // Isn't currently called since it created some Github bugs returning 500
   private updateGithubPagesBranch(url: string, token: string) {
@@ -240,6 +261,22 @@ export class GithubService {
       'cd ./project-template && rm -rf .git .gitmodules ms/.git api/.git frontend/.git',
     );
   }
+
+  private static workflowCleanup = (rootUrl: string, projectName: string) => {
+    const fileLines = fs
+      .readFileSync('./project-template/api/.github/workflows/e2e_test.yml')
+      .toString()
+      .split('\n');
+
+    fileLines[17] = fileLines[17].slice(0, -1 * rootUrl.length);
+    fileLines[19] = fileLines[19].slice(0, -1 * projectName.length);
+    fileLines[22] = fileLines[22].slice(0, -1 * projectName.length);
+
+    fs.writeFileSync(
+      './project-template/api/.github/workflows/e2e_test.yml',
+      fileLines.join('\n'),
+    );
+  };
 
   deleteRepos = (projectName: any, token: any) =>
     zip(
