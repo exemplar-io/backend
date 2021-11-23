@@ -157,9 +157,9 @@ export class GithubService {
       .readFileSync('./project-template/api/.github/workflows/e2e_test.yml')
       .toString()
       .split('\n');
-    fileLines[17] += ` ${rootUrl}`;
-    fileLines[19] += ` ${projectName}`;
-    fileLines[22] += ` ${projectName}`;
+    fileLines[13] += ` ${rootUrl}`;
+    fileLines[15] += ` ${projectName}`;
+    fileLines[20] += ` ${projectName}`;
 
     fs.writeFileSync(
       './project-template/api/.github/workflows/e2e_test.yml',
@@ -268,9 +268,9 @@ export class GithubService {
       .toString()
       .split('\n');
 
-    fileLines[17] = fileLines[17].slice(0, -1 * rootUrl.length);
-    fileLines[19] = fileLines[19].slice(0, -1 * projectName.length);
-    fileLines[22] = fileLines[22].slice(0, -1 * projectName.length);
+    fileLines[13] = fileLines[13].slice(0, -1 * rootUrl.length);
+    fileLines[15] = fileLines[15].slice(0, -1 * projectName.length);
+    fileLines[20] = fileLines[20].slice(0, -1 * projectName.length);
 
     fs.writeFileSync(
       './project-template/api/.github/workflows/e2e_test.yml',

@@ -10,8 +10,6 @@ jobs:
     steps:
       - name: Cloning project
         run: git clone --recurse-submodules -j8 https://github.com/sasp1/proj.git
-      # - name: Update submodule references
-      #   run: cd proj && git pull --recurse-submodules --jobs=10
       - name: Docker Compose up
         run: cd proj && docker-compose up --build  -d
       - name: Newman install
