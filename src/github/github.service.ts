@@ -1,9 +1,10 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { catchError, map, zip } from 'rxjs';
+import { catchError, concatMap, map, zip } from 'rxjs';
 import { UnauthorizedException } from '@nestjs/common';
 import { promisify } from 'util';
+import * as fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const exec = promisify(require('child_process').exec);
 
@@ -13,6 +14,8 @@ export class GithubService {
     private httpService: HttpService,
     private configService: ConfigService,
   ) {}
+
+  private static userName = '';
 
   authGithub = (code: string) => {
     console.log(this.configService.get<string>('APP_CLIENT_ID'));
@@ -32,13 +35,13 @@ export class GithubService {
       )
       .pipe(
         map((response) => {
-          if (response.data.error)
+          if (response.data && response.data.error)
             throw new UnauthorizedException(response.data.error_description);
           return response.data['access_token'];
         }),
       );
   };
-  createRepo = (projectName, token) =>
+  createRepo = (projectName: string, token: string) =>
     zip(
       this.createRepoHTTPRequest(projectName + '-ms', token),
       this.createRepoHTTPRequest(projectName + '-api', token),
@@ -48,6 +51,10 @@ export class GithubService {
       map(async ([msUrl, apiUrl, frontendUrl, rootUrl]) => {
         try {
           await GithubService.gitConfig();
+
+          GithubService.updateHomepageUrl(frontendUrl);
+          GithubService.updateGithubE2ETestUrl(rootUrl, projectName);
+
           await Promise.all([
             GithubService.addFilesToRepo(token, msUrl, 'ms'),
             GithubService.addFilesToRepo(token, apiUrl, 'api'),
@@ -67,9 +74,16 @@ export class GithubService {
             GithubService.pushFilesToRepo('frontend'),
             GithubService.pushFilesToRepo('root'),
           ]);
+
+          // await this.updateGithubPagesBranch(frontendUrl, token).toPromise();
+
           await GithubService.gitCleanup();
+          GithubService.workflowCleanup(rootUrl, projectName);
         } catch (e) {
           await GithubService.gitCleanup();
+          GithubService.workflowCleanup(rootUrl, projectName);
+          console.log(e);
+
           throw e;
         }
 
@@ -77,7 +91,7 @@ export class GithubService {
       }),
     );
 
-  private createRepoHTTPRequest = (name, token) =>
+  private createRepoHTTPRequest = (name: string, token: string) =>
     this.httpService
       .post(
         'https://api.github.com/user/repos',
@@ -103,7 +117,9 @@ export class GithubService {
       );
 
   private static gitConfig() {
-    return exec('git config --global user.email "you@example.com"  ');
+    return exec(
+      'git config --global user.email "peareasy@life.com"  && git config --global user.name "PearEasy"',
+    );
   }
 
   private static pushFilesToRepo(name: string) {
@@ -111,7 +127,92 @@ export class GithubService {
       return exec(
         'cd ./project-template/' + name + ' && git push -u origin main',
       );
-    return exec('cd ./project-template/ && git push -u origin main');
+    return exec('cd ./project-template/ && git push -u origin main ');
+  }
+
+  private static updateHomepageUrl(url: string) {
+    const [username, projectName] = url
+      .substring(19, url.length - 4)
+      .split('/');
+
+    GithubService.userName = username;
+
+    const fileLines = fs
+      .readFileSync('./project-template/frontend/package.json')
+      .toString()
+      .split('\n');
+    fileLines[2] = `  "homepage": "https://${username}.github.io/${projectName}/",`;
+
+    fs.writeFileSync(
+      './project-template/frontend/package.json',
+      fileLines.join('\n'),
+    );
+  }
+
+  private static updateGithubE2ETestUrl = (
+    rootUrl: string,
+    projectName: string,
+  ) => {
+    const fileLines = fs
+      .readFileSync('./project-template/api/.github/workflows/e2e_test.yml')
+      .toString()
+      .split('\n');
+    fileLines[13] += ` ${rootUrl}`;
+    fileLines[15] += ` ${projectName}`;
+    fileLines[20] += ` ${projectName}`;
+
+    fs.writeFileSync(
+      './project-template/api/.github/workflows/e2e_test.yml',
+      fileLines.join('\n'),
+    );
+  };
+
+  // Isn't currently called since it created some Github bugs returning 500
+  private updateGithubPagesBranch(url: string, token: string) {
+    const [username, projectName] = url
+      .substring(19, url.length - 4)
+      .split('/');
+
+    return this.httpService
+      .get(`https://api.github.com/repos/${username}/${projectName}/branches`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .pipe(
+        concatMap((res) =>
+          this.httpService.post(
+            `https://api.github.com/repos/${username}/${projectName}/git/refs`,
+            {
+              ref: 'refs/heads/gh-pages',
+              sha: res.data[0].commit.sha,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          ),
+        ),
+      )
+      .pipe(
+        concatMap(() =>
+          this.httpService.post(
+            `https://api.github.com/repos/${username}/${projectName}/pages`,
+            {
+              source: {
+                branch: 'gh-pages',
+                path: '/',
+              },
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          ),
+        ),
+      );
   }
 
   private static addFilesToRepo(token, url: string, name: string) {
@@ -130,11 +231,11 @@ export class GithubService {
   }
 
   private static async addFilesToRoot(
-    token,
-    msUrl,
-    apiUrl,
-    frontendUrl,
-    rootUrl,
+    token: string,
+    msUrl: string,
+    apiUrl: string,
+    frontendUrl: string,
+    rootUrl: string,
   ) {
     const githubUrl = 'https://' + token + '@' + rootUrl.substring(8);
     await exec(
@@ -161,6 +262,22 @@ export class GithubService {
     );
   }
 
+  private static workflowCleanup = (rootUrl: string, projectName: string) => {
+    const fileLines = fs
+      .readFileSync('./project-template/api/.github/workflows/e2e_test.yml')
+      .toString()
+      .split('\n');
+
+    fileLines[13] = fileLines[13].slice(0, -1 * rootUrl.length);
+    fileLines[15] = fileLines[15].slice(0, -1 * projectName.length);
+    fileLines[20] = fileLines[20].slice(0, -1 * projectName.length);
+
+    fs.writeFileSync(
+      './project-template/api/.github/workflows/e2e_test.yml',
+      fileLines.join('\n'),
+    );
+  };
+
   deleteRepos = (projectName: any, token: any) =>
     zip(
       this.deleteRepoHttpRequest(projectName + '-ms', token),
@@ -173,13 +290,13 @@ export class GithubService {
       }),
     );
 
-  private deleteRepoHttpRequest = (repoName, token) =>
+  private deleteRepoHttpRequest = (repoName: string, token: string) =>
     this.httpService
       .delete(
-        'https://api.github.com/repos/' +
-          this.configService.get<string>('DELETE_GITHUB_REPO_NAME', 'sasp1') +
-          '/' +
-          repoName,
+        `https://api.github.com/repos/${
+          GithubService.userName ||
+          this.configService.get<string>('DELETE_GITHUB_REPO_NAME', 'sasp1')
+        }/${repoName}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

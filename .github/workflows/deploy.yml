@@ -13,8 +13,7 @@ jobs:
       - name: Setting up node with version ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          node-version: '14'
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:

@@ -8,7 +8,8 @@ export class AppController {
 
   @ApiResponse({
     status: 200,
-    description: 'Endpoint for testing connection. Returns simple Hello World!',
+    description:
+      'Endpoint for testing connection. Returns simple Hello World! ',
     content: {
       'text/html': {
         schema: { type: 'string', example: 'Hello World!' },
