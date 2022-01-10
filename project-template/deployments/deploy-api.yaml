@@ -1,14 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  # Metadata describes the deployment itself
   name: api
 spec:
   selector:
+    # Tell the deployment to match the pod it's deploying
     matchLabels:
       app: api
   replicas: 1
+  # podTemplate describes the pod
   template:
     metadata:
+      # Label for the pod that is launched
       labels:
         app: api
     spec:
@@ -29,5 +33,6 @@ spec:
   ports:
     - port: 3000
       targetPort: 3000
+      nodePort: 30001
   type: LoadBalancer
 
