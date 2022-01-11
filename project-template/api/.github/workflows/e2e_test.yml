@@ -11,14 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cloning project
-        run: git clone --recurse-submodules -j8  
+        run: git clone --recurse-submodules -j8                   
       - name: Docker Compose up
-        working-directory:  
+        working-directory:                   
         run: docker-compose up --build -d
       - name: Newman install
         run: npm i -g newman
       - name: Run health check
-        working-directory: 
+        working-directory:                  
         run: bash ./wait_for_it.sh
       - name: Run Postman Tests
         run: newman run https://www.getpostman.com/collections/c6ca15eb302ca7b855ec

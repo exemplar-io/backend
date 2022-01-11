@@ -10,7 +10,7 @@ class HomePage extends Page {
 
   get btnSubmit() {
     // console.log($('button[type="button"]').getHTML())
-    return $('.bg-primary-500');
+    return $('.submit');
   }
 
   async authorize(username, password) {

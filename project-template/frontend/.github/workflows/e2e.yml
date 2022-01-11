@@ -2,7 +2,7 @@ name: 'E2E Test'
 
 on:
   push:
-    branches: [selenium]
+    branches: [main]
 
 jobs:
   test:
@@ -13,17 +13,15 @@ jobs:
       - name: Docker Compose up
         working-directory:
         run: docker-compose up --build -d
-      - name: Newman install
-        run: npm i -g newman
       - name: Run health check
         working-directory:
         run: bash ./wait_for_it.sh
       - name: Install E2E
         run: npm install
-        working-directory: e2e
+        working-directory:
       - name: Run e2e tests
         run: npm run wdio
-        working-directory: e2e
+        working-directory:
       - uses: actions/upload-artifact@v1
         if: failure()
         with:

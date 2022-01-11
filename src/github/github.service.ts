@@ -153,7 +153,7 @@ export class GithubService {
     rootUrl: string,
     projectName: string,
   ) => {
-    const fileLines = fs
+    let fileLines = fs
       .readFileSync('./project-template/api/.github/workflows/e2e_test.yml')
       .toString()
       .split('\n');
@@ -163,6 +163,21 @@ export class GithubService {
 
     fs.writeFileSync(
       './project-template/api/.github/workflows/e2e_test.yml',
+      fileLines.join('\n'),
+    );
+
+    fileLines = fs
+      .readFileSync('./project-template/frontend/.github/workflows/e2e.yml')
+      .toString()
+      .split('\n');
+    fileLines[11] += ` ${rootUrl}`;
+    fileLines[13] += ` ${projectName}`;
+    fileLines[16] += ` ${projectName}`;
+    fileLines[20] += ` ${projectName}/frontend/src/e2e`;
+    fileLines[23] += ` ${projectName}/frontend/src/e2e`;
+
+    fs.writeFileSync(
+      './project-template/frontend/.github/workflows/e2e.yml',
       fileLines.join('\n'),
     );
   };
@@ -263,7 +278,7 @@ export class GithubService {
   }
 
   private static workflowCleanup = (rootUrl: string, projectName: string) => {
-    const fileLines = fs
+    let fileLines = fs
       .readFileSync('./project-template/api/.github/workflows/e2e_test.yml')
       .toString()
       .split('\n');
@@ -274,6 +289,22 @@ export class GithubService {
 
     fs.writeFileSync(
       './project-template/api/.github/workflows/e2e_test.yml',
+      fileLines.join('\n'),
+    );
+
+    fileLines = fs
+      .readFileSync('./project-template/frontend/.github/workflows/e2e.yml')
+      .toString()
+      .split('\n');
+
+    fileLines[11] = fileLines[11].slice(0, -1 * (rootUrl.length + 1));
+    fileLines[13] = fileLines[13].slice(0, -1 * (projectName.length + 1));
+    fileLines[16] = fileLines[16].slice(0, -1 * (projectName.length + 1));
+    fileLines[20] = fileLines[20].slice(0, -1 * (projectName.length + 18));
+    fileLines[23] = fileLines[23].slice(0, -1 * (projectName.length + 18));
+
+    fs.writeFileSync(
+      './project-template/frontend/.github/workflows/e2e.yml',
       fileLines.join('\n'),
     );
   };
