@@ -1,0 +1,31 @@
+name: 'E2E Test'
+
+on:
+  push:
+    branches: [selenium]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cloning project
+        run: git clone --recurse-submodules -j8
+      - name: Docker Compose up
+        working-directory:
+        run: docker-compose up --build -d
+      - name: Newman install
+        run: npm i -g newman
+      - name: Run health check
+        working-directory:
+        run: bash ./wait_for_it.sh
+      - name: Install E2E
+        run: npm install
+        working-directory: e2e
+      - name: Run e2e tests
+        run: npm run wdio
+        working-directory: e2e
+      - uses: actions/upload-artifact@v1
+        if: failure()
+        with:
+          name: logs
+          path: logs
