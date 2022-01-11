@@ -10,7 +10,7 @@ async function bootstrap() {
     {
       transport: Transport.REDIS,
       options: {
-        url: 'redis://redis:6379',
+        url: 'redis://redis-master:6379',
       },
     },
   );
