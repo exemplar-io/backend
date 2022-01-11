@@ -28,16 +28,16 @@ services:
       context: ./api
       target: development
       dockerfile: ./Dockerfile
-    command: npm run start
+    command: npm run start:dev
     ports:
       - 3000:3000
       - 9229:9229
     networks:
       - nesjs-network
-    links:
-      - redis
-    depends_on:
-      - redis
+    # links:
+    #   - redis
+    # depends_on:
+    #   - redis
     volumes:
       - ./api:/usr/src/app
       - /usr/src/app/node_modules
@@ -49,13 +49,13 @@ services:
       context: ./ms
       target: development
       dockerfile: ./Dockerfile
-    command: npm run start
+    command: npm run start:dev
     networks:
       - nesjs-network
-    links:
-      - redis
-    depends_on:
-      - redis
+    # links:
+    #   - redis
+    # depends_on:
+    #   - redis
     volumes:
       - ./ms:/usr/src/app
       - /usr/src/app/node_modules
