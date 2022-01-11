@@ -28,7 +28,6 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: backend
-          #          IMAGE_TAG: ${{ github.sha }}
           APP_CLIENT_ID: ${{ secrets.APP_CLIENT_ID }}
           APP_SECRET: ${{ secrets.APP_SECRET }}
         run: |
