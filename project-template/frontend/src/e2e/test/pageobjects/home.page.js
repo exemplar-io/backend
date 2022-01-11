@@ -4,16 +4,27 @@ const Page = require('./page');
  * sub page containing specific selectors and methods for a specific page
  */
 class HomePage extends Page {
-  /**
-   * define selectors using getter methods
-   */
 
   get btnSubmit() {
     // console.log($('button[type="button"]').getHTML())
     return $('.submit');
   }
 
-  async authorize(username, password) {
+  get usernameInput() {
+    return $('#username');
+  }
+
+  get passwordInput(){
+    return $('#password');
+  }
+
+  get confirmationText() {
+    return $("#confirmation");
+  }
+
+  async login(username, password) {
+    await this.usernameInput.setValue(username);
+    await this.passwordInput.setValue(password);
     await this.btnSubmit.click();
   }
 
