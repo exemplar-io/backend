@@ -28,7 +28,7 @@ function App() {
       <header className="App-header">
         {jwt ? (
           <div>
-            <p>Logged in!</p>
+            <p id="confirmation">Logged in!</p>
           </div>
         ) : (
           <div className="form">
