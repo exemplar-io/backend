@@ -8,6 +8,12 @@ import * as fs from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const exec = promisify(require('child_process').exec);
 
+interface GithubAuthResponse {
+  access_token: string;
+  error: string;
+  error_description: string;
+}
+
 @Injectable()
 export class GithubService {
   constructor(
@@ -18,11 +24,8 @@ export class GithubService {
   private static userName = '';
 
   authGithub = (code: string) => {
-    console.log(this.configService.get<string>('APP_CLIENT_ID'));
-    console.log(this.configService.get<string>('APP_SECRET'));
-
     return this.httpService
-      .post(
+      .post<GithubAuthResponse>(
         'https://github.com/login/oauth/access_token',
         {
           client_id: this.configService.get<string>('APP_CLIENT_ID'),
@@ -34,10 +37,10 @@ export class GithubService {
         },
       )
       .pipe(
-        map((response) => {
-          if (response.data && response.data.error)
-            throw new UnauthorizedException(response.data.error_description);
-          return response.data['access_token'];
+        map(({ data }) => {
+          if (data && data.error)
+            throw new UnauthorizedException(data.error_description);
+          return data.access_token;
         }),
       );
   };

@@ -5,12 +5,7 @@ import { GithubController } from './github.controller';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot(),
-    HttpModule.register({
-      // baseURL: 'https://api.github.com',
-    }),
-  ],
+  imports: [ConfigModule.forRoot(), HttpModule.register({})],
   providers: [GithubService],
   exports: [GithubService],
   controllers: [GithubController],
