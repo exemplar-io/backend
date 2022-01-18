@@ -85,8 +85,6 @@ export class GithubService {
         } catch (e) {
           await GithubService.gitCleanup();
           GithubService.workflowCleanup(rootUrl, projectName);
-          console.log(e);
-
           throw e;
         }
 
