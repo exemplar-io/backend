@@ -47,11 +47,12 @@ export class GithubService {
   createRepo = (projectName: string, token: string) =>
     zip(
       this.createRepoHTTPRequest(projectName + '-ms', token),
-      this.createRepoHTTPRequest(projectName + '-api', token),
+      this.createRepoHTTPRequest(projectName + '-auth-ms', token),
+      this.createRepoHTTPRequest(projectName + '-api-gateway', token),
       this.createRepoHTTPRequest(projectName + '-frontend', token),
       this.createRepoHTTPRequest(projectName, token),
     ).pipe(
-      map(async ([msUrl, apiUrl, frontendUrl, rootUrl]) => {
+      map(async ([msUrl, authUrl, apiUrl, frontendUrl, rootUrl]) => {
         try {
           await GithubService.gitConfig();
 
@@ -60,7 +61,8 @@ export class GithubService {
 
           await Promise.all([
             GithubService.addFilesToRepo(token, msUrl, 'ms'),
-            GithubService.addFilesToRepo(token, apiUrl, 'api'),
+            GithubService.addFilesToRepo(token, authUrl, 'auth_ms'),
+            GithubService.addFilesToRepo(token, apiUrl, 'api_gateway'),
             GithubService.addFilesToRepo(token, frontendUrl, 'frontend'),
           ]);
           await GithubService.addFilesToRoot(
@@ -69,11 +71,13 @@ export class GithubService {
             apiUrl,
             frontendUrl,
             rootUrl,
+            authUrl,
           );
 
           await Promise.all([
             GithubService.pushFilesToRepo('ms'),
-            GithubService.pushFilesToRepo('api'),
+            GithubService.pushFilesToRepo('auth_ms'),
+            GithubService.pushFilesToRepo('api_gateway'),
             GithubService.pushFilesToRepo('frontend'),
             GithubService.pushFilesToRepo('root'),
           ]);
@@ -88,7 +92,7 @@ export class GithubService {
           throw e;
         }
 
-        return { msUrl, apiUrl, rootUrl };
+        return { msUrl, apiUrl, rootUrl, authUrl };
       }),
     );
 
@@ -155,7 +159,7 @@ export class GithubService {
     projectName: string,
   ) => {
     let fileLines = fs
-      .readFileSync('./project-template/api/.github/workflows/e2e_test.yml')
+      .readFileSync('./project-template/api_gateway/.github/workflows/e2e_test.yml')
       .toString()
       .split('\n');
     fileLines[13] += ` ${rootUrl}`;
@@ -163,7 +167,7 @@ export class GithubService {
     fileLines[20] += ` ${projectName}`;
 
     fs.writeFileSync(
-      './project-template/api/.github/workflows/e2e_test.yml',
+      './project-template/api_gateway/.github/workflows/e2e_test.yml',
       fileLines.join('\n'),
     );
 
@@ -252,6 +256,7 @@ export class GithubService {
     apiUrl: string,
     frontendUrl: string,
     rootUrl: string,
+    authUrl: string,
   ) {
     const githubUrl = 'https://' + token + '@' + rootUrl.substring(8);
     await exec(
@@ -261,8 +266,11 @@ export class GithubService {
         msUrl +
         ' ms && ' +
         'git submodule add ' +
+        authUrl +
+        ' auth_ms && ' +
+        'git submodule add ' +
         apiUrl +
-        ' api && ' +
+        ' api_gateway && ' +
         'git submodule add ' +
         frontendUrl +
         ' frontend && ' +
@@ -274,13 +282,13 @@ export class GithubService {
   }
   private static async gitCleanup() {
     exec(
-      'cd ./project-template && rm -rf .git .gitmodules ms/.git api/.git frontend/.git',
+      'cd ./project-template && rm -rf .git .gitmodules ms/.git auth_ms/.git api_gateway/.git frontend/.git',
     );
   }
 
   private static workflowCleanup = (rootUrl: string, projectName: string) => {
     let fileLines = fs
-      .readFileSync('./project-template/api/.github/workflows/e2e_test.yml')
+      .readFileSync('./project-template/api_gateway/.github/workflows/e2e_test.yml')
       .toString()
       .split('\n');
 
@@ -289,7 +297,7 @@ export class GithubService {
     fileLines[20] = fileLines[20].slice(0, -1 * projectName.length);
 
     fs.writeFileSync(
-      './project-template/api/.github/workflows/e2e_test.yml',
+      './project-template/api_gateway/.github/workflows/e2e_test.yml',
       fileLines.join('\n'),
     );
 
@@ -313,12 +321,13 @@ export class GithubService {
   deleteRepos = (projectName: any, token: any) =>
     zip(
       this.deleteRepoHttpRequest(projectName + '-ms', token),
-      this.deleteRepoHttpRequest(projectName + '-api', token),
+      this.deleteRepoHttpRequest(projectName + '-auth_ms', token),
+      this.deleteRepoHttpRequest(projectName + '-api_gateway', token),
       this.deleteRepoHttpRequest(projectName + '-frontend', token),
       this.deleteRepoHttpRequest(projectName, token),
     ).pipe(
-      map(([res1, res2, res3, res4]) => {
-        return { res1, res2, res3, res4 };
+      map(([res1, res2, res3, res4, res5]) => {
+        return { res1, res2, res3, res4, res5 };
       }),
     );
 
