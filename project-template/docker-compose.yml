@@ -53,6 +53,20 @@ services:
       - ./auth_ms:/usr/src/app
       - /usr/src/app/node_modules
     restart: unless-stopped
+  ms:
+    container_name: ms
+    image: ms
+    build:
+      context: ./ms
+      target: development
+      dockerfile: ./Dockerfile
+    command: npm run start:dev
+    networks:
+      - generated-app-network
+    volumes:
+      - ./ms:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: unless-stopped
 
 networks:
   generated-app-network:

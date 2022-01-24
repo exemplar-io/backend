@@ -16,4 +16,7 @@ export class AppService {
   getHello() {
     return this.clientProxy.send('get-hello', 'hello');
   }
+  emptyEndpoint() {
+    return this.clientProxy.send('empty-ms', 'some data');
+  }
 }
