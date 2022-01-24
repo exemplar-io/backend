@@ -6,10 +6,10 @@ services:
     ports:
       - '6379:6379'
     networks:
-      - nesjs-network
+      - generated-app-network
   frontend:
-    container_name: react_frontend
-    image: react-frontend:1.0.0
+    container_name: frontend
+    image: frontend
     build:
       context: ./frontend
       target: build-deps
@@ -18,15 +18,15 @@ services:
     ports:
       - 3001:3000
     networks:
-      - nesjs-network
+      - generated-app-network
     volumes:
       - ./frontend:/usr/src/app
       - /usr/src/app/node_modules
-  api:
-    container_name: nestjs_api_dev
-    image: nestjs-api-dev:1.0.0
+  api-gateway:
+    container_name: api-gateway
+    image: api-gateway
     build:
-      context: ./api
+      context: ./api_gateway
       target: development
       dockerfile: ./Dockerfile
     command: npm run start:dev
@@ -34,33 +34,39 @@ services:
       - 3000:3000
       - 9229:9229
     networks:
-      - nesjs-network
-    # links:
-    #   - redis
-    # depends_on:
-    #   - redis
+      - generated-app-network
     volumes:
-      - ./api:/usr/src/app
+      - ./api_gateway:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: unless-stopped
+  auth_ms:
+    container_name: auth_ms
+    image: auth_ms
+    build:
+      context: ./auth_ms
+      target: development
+      dockerfile: ./Dockerfile
+    command: npm run start:dev
+    networks:
+      - generated-app-network
+    volumes:
+      - ./auth_ms:/usr/src/app
       - /usr/src/app/node_modules
     restart: unless-stopped
   ms:
-    container_name: nestjs_ms_dev
-    image: nestjs-ms-dev:1.0.0
+    container_name: ms
+    image: ms
     build:
       context: ./ms
       target: development
       dockerfile: ./Dockerfile
     command: npm run start:dev
     networks:
-      - nesjs-network
-    # links:
-    #   - redis
-    # depends_on:
-    #   - redis
+      - generated-app-network
     volumes:
       - ./ms:/usr/src/app
       - /usr/src/app/node_modules
     restart: unless-stopped
 
 networks:
-  nesjs-network:
+  generated-app-network:
