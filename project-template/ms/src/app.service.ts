@@ -4,6 +4,6 @@ import { Injectable } from '@nestjs/common';
 export class AppService {
 
   returnSomeMessage(): string {
-    return 'You have created a new endpoint which uses Redis';
+    return 'This is the empty MS';
   }
 }
