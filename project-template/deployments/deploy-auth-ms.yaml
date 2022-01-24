@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ms
+  name: auth-ms
 spec:
   selector:
     matchLabels:
-      app: ms
+      app: auth-ms
   replicas: 1
   template:
     metadata:
       labels:
-        app: ms
+        app: auth-ms
     spec:
       containers:
-      - name: ms
-        image: ms
+      - name: auth-ms
+        image: auth-ms
         imagePullPolicy: Never
