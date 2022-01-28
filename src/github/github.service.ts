@@ -159,7 +159,9 @@ export class GithubService {
     projectName: string,
   ) => {
     let fileLines = fs
-      .readFileSync('./project-template/api_gateway/.github/workflows/e2e_test.yml')
+      .readFileSync(
+        './project-template/api_gateway/.github/workflows/e2e_test.yml',
+      )
       .toString()
       .split('\n');
     fileLines[13] += ` ${rootUrl}`;
@@ -288,7 +290,9 @@ export class GithubService {
 
   private static workflowCleanup = (rootUrl: string, projectName: string) => {
     let fileLines = fs
-      .readFileSync('./project-template/api_gateway/.github/workflows/e2e_test.yml')
+      .readFileSync(
+        './project-template/api_gateway/.github/workflows/e2e_test.yml',
+      )
       .toString()
       .split('\n');
 
@@ -321,8 +325,8 @@ export class GithubService {
   deleteRepos = (projectName: any, token: any) =>
     zip(
       this.deleteRepoHttpRequest(projectName + '-ms', token),
-      this.deleteRepoHttpRequest(projectName + '-auth_ms', token),
-      this.deleteRepoHttpRequest(projectName + '-api_gateway', token),
+      this.deleteRepoHttpRequest(projectName + '-auth-ms', token),
+      this.deleteRepoHttpRequest(projectName + '-api-gateway', token),
       this.deleteRepoHttpRequest(projectName + '-frontend', token),
       this.deleteRepoHttpRequest(projectName, token),
     ).pipe(

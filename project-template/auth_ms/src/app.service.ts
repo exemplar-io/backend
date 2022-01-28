@@ -1,8 +1,7 @@
 import { UnauthorizedException } from '@nestjs/common';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dtos/login.dto';
-var jwt = require('jsonwebtoken');
 
 @Injectable()
 export class AppService {

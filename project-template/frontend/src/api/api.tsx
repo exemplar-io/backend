@@ -1,4 +1,4 @@
-const axios = require('axios').default;
+import { default as axios } from 'axios';
 // https://github.com/axios/axios syntax above explained
 
 const instance = axios.create({
