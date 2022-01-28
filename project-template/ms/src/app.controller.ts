@@ -7,8 +7,8 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
 
-  @MessagePattern('empty-ms')
-  returnSomeMessage(): string {
-    return this.appService.returnSomeMessage();
+  @MessagePattern('get-hello')
+  getHello(): string {
+    return this.appService.getHello();
   }
 }

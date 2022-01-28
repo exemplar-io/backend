@@ -13,8 +13,4 @@ export class AppController {
   getHello() {
     return this.appService.getHello();
   }
-  @Get('empty-ms-endpoint')
-  newEndpoint() {
-    return this.appService.emptyEndpoint();
-  }
 }

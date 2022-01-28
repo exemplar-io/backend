@@ -7,11 +7,6 @@ import { LoginDto } from './dtos/login.dto';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @MessagePattern('get-hello')
-  getHello(): string {
-    return this.appService.getHello();
-  }
-
   @MessagePattern('login')
   login(@Payload() loginDto: LoginDto) {
     return this.appService.login(loginDto);
