@@ -2,6 +2,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dtos/login.dto';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class AppService {
@@ -20,7 +21,7 @@ export class AppService {
         u.username === loginDto.username && u.password === loginDto.password,
     );
 
-    if (idx === -1) throw new UnauthorizedException();
+    if (idx === -1) throw new RpcException('Unauthorized');
 
     return this.jwtService.sign(loginDto);
   }

@@ -18,8 +18,6 @@ export class AppController {
   })
   @Get()
   getHello(): string {
-    console.log('yoos');
-
     return this.appService.getHello();
   }
 }
