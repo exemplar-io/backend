@@ -15,4 +15,3 @@ spec:
       containers:
       - name: auth-ms
         image: auth-ms
-        imagePullPolicy: Never

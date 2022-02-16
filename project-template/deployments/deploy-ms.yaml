@@ -15,4 +15,3 @@ spec:
       containers:
       - name: ms
         image: ms
-        imagePullPolicy: Never
