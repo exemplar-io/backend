@@ -3,10 +3,11 @@ import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { AppService } from './app.service';
+import { RpcException } from '@nestjs/microservices';
 
 describe('AppService', () => {
   let appService: AppService;
-  let jwt = 'jwt';
+  const jwt = 'jwt';
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
@@ -27,7 +28,7 @@ describe('AppService', () => {
       const username = 'incorrect';
       const password = 'credentials';
       expect(() => appService.login({ username, password })).toThrow(
-        UnauthorizedException,
+        RpcException,
       );
     });
 
