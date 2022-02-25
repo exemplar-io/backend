@@ -1,4 +1,3 @@
-import { UnauthorizedException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dtos/login.dto';
@@ -23,6 +22,6 @@ export class AppService {
 
     if (idx === -1) throw new RpcException('Unauthorized');
 
-    return this.jwtService.sign(loginDto);
+    return this.jwtService.sign({ username: loginDto.username });
   }
 }
